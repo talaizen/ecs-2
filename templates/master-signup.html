@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECS-2</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/master-signup.css">
+    <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
+</head>
+<body>
+    <div class="login-box">
+        <img src="/static/images/ECS_Logo.jpg">
+        <h2>Create a master account</h2>
+        <form>
+        <div class="user-box">
+            <input type="text" id="first-name">
+            <label>first name</label>
+        </div>
+        <div class="user-box">
+            <input type="text" id="last-name">
+            <label>last name</label>
+        </div>
+        <div class="user-box">
+            <input type="text" id="personal-id">
+            <label>personal id</label>
+        </div>
+        <div class="user-box">
+            <input type="text" id="email">
+            <label>email</label>
+        </div>
+        <div class="user-box">
+            <input type="password" id="password">
+            <label>Password</label>
+        </div>
+        <div class="user-box">
+            <input type="password" id="confirm-password">
+            <label>Confirm Password</label>
+        </div>
+        <input type="checkbox" id="show-password">
+        <label for="showPassword" id="show-password-label">Show Password</label>
+        <button onclick="loginForm()">Submit</button>
+        <a href="/templates/index.html">back to login page</a>
+        </form>
+    </div>
+  
+    <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

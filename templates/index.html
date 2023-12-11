@@ -4,13 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECS-2</title>
-    <link rel="stylesheet" href="src/css/index.css">  
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar__container">
+    <div class="login-box">
+        <img src="/static/images/ECS_Logo.jpg">
+        <h2>Login</h2>
+
+        <form>
+            <div class="user-box">
+                <input type="text" id="userName">
+                <label>Username</label>
+            </div>
+
+            <div class="user-box">
+                <input type="password" id="pwd">
+                <label>Password</label>
+            </div>
+
+            <input type="checkbox" id="showPassword">
+            <label for="showPassword" id="showPasswordLabel">Show Password</label>
+
+            <button type="button" onclick="loginForm()">Submit</button>
             
-        </div>
-    </nav>
+            <a href="#">Create a client account</a>
+            <a href="/templates/master-signup.html">Create a master account</a>
+        </form>
+    </div>
+  
+    <script src="/static/js/index.js"></script>
+    <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
