@@ -4,40 +4,38 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
 
 from utils.mongo_db import MongoDB
 from forms.jason_forms import LoginForm, MasterAccount
 
 
+# Initiating mongo db connection at app startup
 MONGO_URL = "mongodb://admin:password@localhost:27017"
 MONGO_DB_NAME = "ecs"
 mongo = MongoDB(MONGO_URL, MONGO_DB_NAME)
 
-
+# Closing mongo db connection at app shutdown
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan():
     print("starting app")
     yield
     print("closing mongo connection")
     mongo.close_session()
 
-
 app = FastAPI(lifespan=lifespan)
 templates = Jinja2Templates(directory="templates")
-
 
 # Mount folders as static directories
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/vendor", StaticFiles(directory="vendor"), name="vendor")
 
-
 # Serve the index.html file
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
+def read_root(request: Request):
+    return templates.TemplateResponse(
+        "index.html", {"request": request}
+    )
 
 @app.post("/login")
 async def login(login_data: LoginForm):
@@ -46,9 +44,9 @@ async def login(login_data: LoginForm):
     print(username, password)
     return {"message": "Login successful"}
 
-
 @app.post("/create_master_account")
 async def create_master_account(master_account_data: MasterAccount):
     print(master_account_data)
     account_dict = dict(master_account_data)
     await mongo.insert_master_account(account_dict)
+
