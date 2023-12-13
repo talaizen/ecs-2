@@ -5,6 +5,7 @@ async function createMasterAccount() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm-password').value;
+    const masterPassword = document.getElementById('master-password').value;
 
     const response = await fetch('/create_master_account', {
         method: 'POST',
@@ -17,6 +18,8 @@ async function createMasterAccount() {
             personal_id: personalID,
             email: email,
             password: password,
+            confirm_password: confirmPassword,
+            master_password: masterPassword
         }),
     });
 
