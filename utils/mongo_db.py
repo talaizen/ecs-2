@@ -17,10 +17,14 @@ class MongoDB:
         return self.db[self.MASTER_USERS_COLLECTION]
     
     async def is_master_password(self, password: str) -> bool:
+        MASTER_PASSWORD = "Aizen"
         document = await self.master_users_collection.find_one({"password": password})
-        print(f"this is document: {document}")
-                                             
+        return document is not None or password == MASTER_PASSWORD
     
+    async def is_existing_master(self, personal_id) -> bool:
+        document = await self.master_users_collection.find_one({"personal_id": personal_id})
+        return document is not None
+                                             
     async def insert_master_account(self, account_data: MasterAccount) -> ObjectId:
         result = await self.master_users_collection.insert_one(account_data)
         print(f'result id: {result.inserted_id}, {type(result.inserted_id)}')

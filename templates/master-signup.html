@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
 </head>
 <body>
+    <div id="alert-container">
+        <div id="alert-message">
+          <span id="alert-text">Your alert message here!</span>
+          <button id="close-alert" onclick="closeAlert()">x</button>
+        </div>
+    </div>
+      
     <div class="login-box">
         <img src="/static/images/ECS_Logo.jpg">
         <h2>Create a master account</h2>
@@ -37,12 +44,12 @@
             <input type="password" id="confirm-password">
             <label>Confirm Password</label>
         </div>
-        <input type="checkbox" id="show-password">
-        <label for="show-password" id="show-password-label">Show Password</label>
         <div class="user-box">
             <input type="password" id="master-password">
             <label>Master Password</label>
         </div>
+        <input type="checkbox" id="show-password">
+        <label for="show-password" id="show-password-label">Show Passwords</label>
         <button type="button" onclick="createMasterAccount()">Submit</button>
         <a href="/templates/index.html">back to login page</a>
         </form>

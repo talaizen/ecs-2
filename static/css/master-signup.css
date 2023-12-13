@@ -196,4 +196,36 @@ html {
     color: #03e9f4;
   }
 
- 
+  #alert-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f44336; /* Red background color */
+    color: white;
+    padding: 10px;
+    display: none; /* Initially hide the alert */
+    z-index: 1000;
+    text-align: center;
+    align-items: center;
+  }
+  
+  #alert-message {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+  }
+
+  #alert-text{
+    margin: 0;
+  }
+  
+  #close-alert {
+    background-color: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+  }
