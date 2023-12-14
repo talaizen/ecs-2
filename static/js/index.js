@@ -1,5 +1,10 @@
+document.getElementById("showPassword").addEventListener("change", function () {
+    var passwordInput = document.getElementById("pwd");
+    passwordInput.type = this.checked ? "text" : "password";
+});
+
 async function loginForm() {
-    const userName = document.getElementById('userName').value;
+    const personalID = document.getElementById('personal-id').value;
     const password = document.getElementById('pwd').value;
 
     const response = await fetch('/login', {
@@ -8,21 +13,20 @@ async function loginForm() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            username: userName,
-            password: password,
+            personal_id: personalID,
+            password: password
         }),
     });
 
     if (response.ok) {
-        // Successful login, you can redirect or perform other actions
-        console.log('Login successful');
+        const responseData = await response.json();
+        console.log(responseData);
+        const redirectUrl = responseData.redirect_url;
+        if (redirectUrl) {
+            // Redirect to the new URL
+            window.location.href = redirectUrl;}
     } else {
         // Failed login, handle the error
         console.error('Login failed');
     }
 }
-
-document.getElementById("showPassword").addEventListener("change", function () {
-    var passwordInput = document.getElementById("pwd");
-    passwordInput.type = this.checked ? "text" : "password";
-  });
