@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
 </head>
 <body>
+    <div id="alert-container">
+        <div id="alert-message">
+          <span id="alert-text">Your alert message here!</span>
+          <button id="close-alert" onclick="closeAlert()">x</button>
+        </div>
+    </div>
+
     <div class="login-box">
         <img src="/static/images/ECS_Logo.jpg">
         <h2>Login</h2>
@@ -27,7 +34,7 @@
             <input type="checkbox" id="showPassword">
             <label for="showPassword" id="showPasswordLabel">Show Password</label>
 
-            <button type="button" onclick="loginForm()">Submit</button>
+            <button type="button" onclick="login()">Submit</button>
             
             <a href="/templates/client-signup.html">Create a client account</a>
             <a href="/templates/master-signup.html">Create a master account</a>

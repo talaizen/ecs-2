@@ -4,6 +4,13 @@ class LoginForm(BaseModel):
     personal_id: int
     password: str
 
+    @field_validator("personal_id", "password")
+    @classmethod
+    def not_empty(cls, v: str) -> str:
+        if v == '':
+            raise ValueError('all fields are required')
+        return v
+
 class MasterAccount(BaseModel):
     first_name: str
     last_name: str
@@ -13,6 +20,13 @@ class MasterAccount(BaseModel):
     confirm_password: str
     master_password: str
 
+
+    @field_validator("first_name", "last_name", "email", "password", "confirm_password", "master_password")
+    @classmethod
+    def not_empty(cls, v: str) -> str:
+        if v == '':
+            raise ValueError('all fields are required')
+        return v
 
     @model_validator(mode="after")
     def check_passwords_match(self) -> "MasterAccount":
@@ -46,6 +60,13 @@ class ClientAccount(BaseModel):
     master_password: str
 
 
+    @field_validator("first_name", "last_name", "palga", "team", "email", "password", "confirm_password", "master_password")
+    @classmethod
+    def not_empty(cls, v: str) -> str:
+        if v == '':
+            raise ValueError('all fields are required')
+        return v
+    
     @model_validator(mode="after")
     def check_passwords_match(self) -> "ClientAccount":
         pw1 = self.password
