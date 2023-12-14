@@ -1,29 +1,27 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from utils.mongo_db import MongoDB
 from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount
 
-# Initiating mongo db connection at app startup
-MONGO_URL = "mongodb://admin:password@localhost:27017"
-MONGO_DB_NAME = "ecs"
-mongo_db = MongoDB(MONGO_URL, MONGO_DB_NAME)
+
+async def get_mongo_db():
+    print("starts mongo db connection")
+    MONGO_URL = "mongodb://admin:password@localhost:27017"
+    MONGO_DB_NAME = "ecs"
+    mongo_db = MongoDB(MONGO_URL, MONGO_DB_NAME)
+    try:
+        yield mongo_db
+    finally:
+        print("closing mongo db connection")
+        mongo_db.close_session()
 
 
-# Closing mongo db connection at app shutdown
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("starting app")
-    yield
-    print("closing mongo connection")
-    mongo_db.close_session()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 # Mount folders as static directories
@@ -40,11 +38,13 @@ def read_root(request: Request):
 
 @app.get("/master_landing_page", response_class=HTMLResponse)
 def master_landing_page(request: Request):
-    return templates.TemplateResponse("/services/master_landing_page.html", {"request": request})
+    return templates.TemplateResponse(
+        "/services/master_landing_page.html", {"request": request}
+    )
 
 
 @app.post("/login")
-async def login(login_data: LoginForm):
+async def login(login_data: LoginForm, mongo_db: MongoDB = Depends(get_mongo_db)):
     personal_id = login_data.personal_id
     password = login_data.password
     print(login_data)
@@ -55,9 +55,10 @@ async def login(login_data: LoginForm):
     raise HTTPException(status_code=400, detail="this user was not found")
 
 
-
 @app.post("/create_master_account")
-async def create_master_account(master_account_data: MasterAccount):
+async def create_master_account(
+    master_account_data: MasterAccount, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     print(master_account_data)
     account_dict = dict(master_account_data)
     try:
@@ -76,14 +77,16 @@ async def create_master_account(master_account_data: MasterAccount):
         "last_name": account_dict.get("last_name"),
         "personal_id": account_dict.get("personal_id"),
         "email": account_dict.get("email"),
-        "password": account_dict.get("password")
+        "password": account_dict.get("password"),
     }
 
     await mongo_db.insert_master_account(user_data)
 
 
 @app.post("/create_client_account")
-async def create_client_account(client_account_data: ClientAccount):
+async def create_client_account(
+    client_account_data: ClientAccount, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     print(client_account_data)
     account_dict = dict(client_account_data)
     try:
@@ -104,7 +107,7 @@ async def create_client_account(client_account_data: ClientAccount):
         "email": account_dict.get("email"),
         "palga": account_dict.get("palga"),
         "team": account_dict.get("team"),
-        "password": account_dict.get("password")
+        "password": account_dict.get("password"),
     }
 
     await mongo_db.insert_client_account(user_data)
