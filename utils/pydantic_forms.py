@@ -1,5 +1,20 @@
 from pydantic import BaseModel, field_validator, model_validator
 
+
+class TokenResponse(BaseModel):
+    redirect_url: str
+
+
+class User(BaseModel):
+    type: str
+    full_name: str 
+    personal_id: int
+    password: str
+    email: str
+    palga: str or None = None
+    team: str or None = None
+
+
 class LoginForm(BaseModel):
     personal_id: int
     password: str
@@ -10,6 +25,7 @@ class LoginForm(BaseModel):
         if v == '':
             raise ValueError('all fields are required')
         return v
+
 
 class MasterAccount(BaseModel):
     first_name: str
@@ -47,6 +63,7 @@ class MasterAccount(BaseModel):
     @classmethod
     def capitalize(cls, v: str) -> str:
         return v.capitalize()
+
 
 class ClientAccount(BaseModel):
     palga: str

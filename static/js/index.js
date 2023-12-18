@@ -17,18 +17,16 @@ async function handleResponse(response) {
     const responseData = await response.json();
 
     if (response.ok) {
-        console.log('login successfully')
+        console.log('login successfully - redirecting page')
         const redirectUrl = responseData.redirect_url;
-        if (redirectUrl) {
-            // Redirect to the new URL
-            window.location.href = redirectUrl;}
+        window.location.href = redirectUrl;
     } else {
         handleErrorResponse(response, responseData);
     }
 }
 
 function handleErrorResponse(response, responseData) {
-    if (response.status === 400) {
+    if (response.status === 401) {
         const errorMessage = responseData.detail;
         console.error('login failed:', errorMessage);
         showFailureAlert(errorMessage);
@@ -47,14 +45,14 @@ async function login() {
     const requestData = prepareRequestData();
 
     try {
-        const response = await fetch('/login', {
+        const response = await fetch('/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(requestData),
         });
-    
+        console.log("this is response: ", response)
         handleResponse(response);
     } catch (error) {
         console.error('Error creating master user:', error);

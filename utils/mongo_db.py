@@ -1,7 +1,7 @@
 from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from utils.pydantic_forms import LoginForm, MasterAccount
+from .pydantic_forms import MasterAccount
 
 
 
@@ -51,6 +51,14 @@ class MongoDB:
     async def login_client(self, personal_id: int, password: str) -> bool:
         document = await self.client_users_collection.find_one({"personal_id": personal_id, "password": password})
         return document is not None
+    
+    async def get_master_user(self, personal_id: int, password: str) -> bool:
+        document = await self.master_users_collection.find_one({"personal_id": personal_id, "password": password})
+        return document
+    
+    async def get_client_user(self, personal_id: int, password: str) -> bool:
+        document = await self.client_users_collection.find_one({"personal_id": personal_id, "password": password})
+        return document
     
     def close_session(self):
         self.client.close()

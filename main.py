@@ -1,29 +1,16 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from datetime import timedelta
 
 from utils.mongo_db import MongoDB
-from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount
+from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, User, TokenResponse
+from utils.dependecy_functions import *
+from utils.helpers import *
 
 
-async def get_mongo_db():
-    """
-    Coroutine function to create and yield a MongoDB instance.
-
-    Yields:
-        MongoDB: Instance of MongoDB.
-    """
-    print("starts mongo db connection")
-    MONGO_URL = "mongodb://admin:password@localhost:27017"
-    MONGO_DB_NAME = "ecs"
-    mongo_db = MongoDB(MONGO_URL, MONGO_DB_NAME)
-    try:
-        yield mongo_db
-    finally:
-        print("closing mongo db connection")
-        mongo_db.close_session()
-
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -35,7 +22,7 @@ app.mount("/vendor", StaticFiles(directory="vendor"), name="vendor")
 
 
 @app.get("/", response_class=HTMLResponse)
-def login_page(request: Request):
+async def login_page(request: Request):
     """
     Route to serve the index.html file.
 
@@ -49,7 +36,7 @@ def login_page(request: Request):
 
 
 @app.get("/master_landing_page", response_class=HTMLResponse)
-def master_landing_page(request: Request):
+async def master_landing_page(request: Request, user: User = Depends(get_current_user)):
     """
     Route to serve the master landing page.
 
@@ -59,11 +46,12 @@ def master_landing_page(request: Request):
     Returns:
         TemplateResponse: HTML response containing the master landing page content.
     """
-    return templates.TemplateResponse("/services/master_landing_page.html", {"request": request})
+    print(user)
+    return templates.TemplateResponse("/services/master_landing_page.html", {"request": request, "full_name": user.full_name})
 
 
 @app.get("/client_landing_page", response_class=HTMLResponse)
-def client_landing_page(request: Request):
+async def client_landing_page(request: Request, user: User = Depends(get_current_user)):
     """
     Route to serve the client landing page.
 
@@ -73,36 +61,7 @@ def client_landing_page(request: Request):
     Returns:
         TemplateResponse: HTML response containing the client landing page content.
     """
-    return templates.TemplateResponse("/services/client_landing_page.html", {"request": request})
-
-
-
-@app.post("/login")
-async def login(login_data: LoginForm, mongo_db: MongoDB = Depends(get_mongo_db)):
-    """
-    Route to authenticate a user and redirect to the master landing page.
-
-    Args:
-        login_data (LoginForm): User login credentials.
-        mongo_db (MongoDB): MongoDB instance.
-
-    Returns:
-        dict: Redirect URL for successful authentication.
-
-    Raises:
-        HTTPException: If the user is not found.
-    """
-    print(login_data)
-    personal_id = login_data.personal_id
-    password = login_data.password
-
-    if await mongo_db.login_master(personal_id, password):
-        return {"redirect_url": "/master_landing_page"}
-    
-    elif await mongo_db.login_client(personal_id, password):
-        return {"redirect_url": "/client_landing_page"}
-
-    raise HTTPException(status_code=400, detail="User was not found")
+    return templates.TemplateResponse("/services/client_landing_page.html", {"request": request, "full_name": user.full_name})
 
 
 
@@ -168,3 +127,37 @@ async def create_client_account(client_account_data: ClientAccount, mongo_db: Mo
         "password": account_dict.get("password")
     }
     await mongo_db.insert_client_account(user_data)
+
+@app.post("/token", response_model=TokenResponse)
+async def login_for_access_token(response: Response, login_data: LoginForm, mongo_db: MongoDB = Depends(get_mongo_db)):
+    """
+    Authenticate a user and return a redirect URL.
+
+    This endpoint authenticates a user using their personal ID and password.
+    If authentication is successful, it generates an access token, sets it in an HTTP-only cookie,
+    and provides a URL to redirect the user to the appropriate landing page based on their user type.
+
+    Args:
+        response (Response): The response object used to set the cookie.
+        login_data (LoginForm): A form containing the user's personal ID and password.
+        mongo_db (MongoDB): The MongoDB connection instance.
+
+    Returns:
+        dict: A dictionary with a `redirect_url` key containing the URL to redirect the authenticated user.
+
+    Raises:
+        HTTPException: 401 error if authentication fails (incorrect username or password).
+    """
+    user = await authenticate_user(mongo_db, login_data.personal_id, login_data.password)
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"})
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": str(user.personal_id), "pwd": user.password}, expires_delta=access_token_expires)
+    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=3600, samesite='Lax')
+    redirect_url = get_landing_page_url(user.type)
+
+    return {"redirect_url": redirect_url}
+    
