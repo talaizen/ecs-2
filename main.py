@@ -3,10 +3,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from datetime import timedelta
+from starlette.responses import RedirectResponse
 
 from utils.mongo_db import MongoDB
-from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, User, TokenResponse
-from utils.dependecy_functions import *
+from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse
+from utils.dependecy_functions import get_mongo_db
 from utils.helpers import *
 
 
@@ -22,7 +23,7 @@ app.mount("/vendor", StaticFiles(directory="vendor"), name="vendor")
 
 
 @app.get("/", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def login_page(request: Request, response: Response):
     """
     Route to serve the index.html file.
 
@@ -36,7 +37,9 @@ async def login_page(request: Request):
 
 
 @app.get("/master_landing_page", response_class=HTMLResponse)
-async def master_landing_page(request: Request, user: User = Depends(get_current_user)):
+async def master_landing_page(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     """
     Route to serve the master landing page.
 
@@ -46,12 +49,20 @@ async def master_landing_page(request: Request, user: User = Depends(get_current
     Returns:
         TemplateResponse: HTML response containing the master landing page content.
     """
-    print(user)
-    return templates.TemplateResponse("/services/master_landing_page.html", {"request": request, "full_name": user.full_name})
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/services/master_landing_page.html",
+        {"request": request, "full_name": user.full_name},
+    )
 
 
 @app.get("/client_landing_page", response_class=HTMLResponse)
-async def client_landing_page(request: Request, user: User = Depends(get_current_user)):
+async def client_landing_page(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     """
     Route to serve the client landing page.
 
@@ -61,12 +72,20 @@ async def client_landing_page(request: Request, user: User = Depends(get_current
     Returns:
         TemplateResponse: HTML response containing the client landing page content.
     """
-    return templates.TemplateResponse("/services/client_landing_page.html", {"request": request, "full_name": user.full_name})
-
+    try:
+        user = await get_current_client_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/services/client_landing_page.html",
+        {"request": request, "full_name": user.full_name},
+    )
 
 
 @app.post("/create_master_account")
-async def create_master_account(master_account_data: MasterAccount, mongo_db: MongoDB = Depends(get_mongo_db)):
+async def create_master_account(
+    master_account_data: MasterAccount, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     """
     Route to create a master account.
 
@@ -84,20 +103,25 @@ async def create_master_account(master_account_data: MasterAccount, mongo_db: Mo
         raise HTTPException(status_code=400, detail="master password is incorrect")
 
     if await mongo_db.is_existing_master(account_dict.get("personal_id")):
-        raise HTTPException(status_code=400, detail=f'this personal id is already used: {account_dict.get("personal_id")}')
+        raise HTTPException(
+            status_code=400,
+            detail=f'this personal id is already used: {account_dict.get("personal_id")}',
+        )
 
     user_data = {
         "first_name": account_dict.get("first_name"),
         "last_name": account_dict.get("last_name"),
         "personal_id": account_dict.get("personal_id"),
         "email": account_dict.get("email"),
-        "password": account_dict.get("password")
+        "password": account_dict.get("password"),
     }
     await mongo_db.insert_master_account(user_data)
 
 
 @app.post("/create_client_account")
-async def create_client_account(client_account_data: ClientAccount, mongo_db: MongoDB = Depends(get_mongo_db)):
+async def create_client_account(
+    client_account_data: ClientAccount, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     """
     Route to create a client account.
 
@@ -115,7 +139,10 @@ async def create_client_account(client_account_data: ClientAccount, mongo_db: Mo
         raise HTTPException(status_code=400, detail="master password is incorrect")
 
     if await mongo_db.is_existing_client(account_dict.get("personal_id")):
-        raise HTTPException(status_code=400, detail=f'this personal id is already used: {account_dict.get("personal_id")}')
+        raise HTTPException(
+            status_code=400,
+            detail=f'this personal id is already used: {account_dict.get("personal_id")}',
+        )
 
     user_data = {
         "first_name": account_dict.get("first_name"),
@@ -124,12 +151,15 @@ async def create_client_account(client_account_data: ClientAccount, mongo_db: Mo
         "email": account_dict.get("email"),
         "palga": account_dict.get("palga"),
         "team": account_dict.get("team"),
-        "password": account_dict.get("password")
+        "password": account_dict.get("password"),
     }
     await mongo_db.insert_client_account(user_data)
 
+
 @app.post("/token", response_model=TokenResponse)
-async def login_for_access_token(response: Response, login_data: LoginForm, mongo_db: MongoDB = Depends(get_mongo_db)):
+async def login_for_access_token(
+    response: Response, login_data: LoginForm, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     """
     Authenticate a user and return a redirect URL.
 
@@ -148,16 +178,29 @@ async def login_for_access_token(response: Response, login_data: LoginForm, mong
     Raises:
         HTTPException: 401 error if authentication fails (incorrect username or password).
     """
-    user = await authenticate_user(mongo_db, login_data.personal_id, login_data.password)
+    user = await authenticate_user(
+        mongo_db, login_data.personal_id, login_data.password
+    )
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                          detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"})
-    
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": str(user.personal_id), "pwd": user.password}, expires_delta=access_token_expires)
-    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=3600, samesite='Lax')
+    access_token = create_access_token(
+        data={"sub": str(user.personal_id), "pwd": user.password},
+        expires_delta=access_token_expires,
+    )
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        max_age=3600,
+        samesite="Lax",
+    )
     redirect_url = get_landing_page_url(user.type)
 
     return {"redirect_url": redirect_url}
-    
