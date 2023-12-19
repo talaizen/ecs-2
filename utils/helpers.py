@@ -1,3 +1,5 @@
+import os
+import logging
 from fastapi import Request, HTTPException, status
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
@@ -14,8 +16,11 @@ __all__ = [
     "authenticate_user",
 ]
 
-SECRET_KEY = "7f4aefaacda0e25168873895a24f3009025bd52eabca0c99083d15b45ece651c"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+
+# Create a logger for this module
+logger = logging.getLogger(__name__)
 
 
 async def get_user(mongo_db: MongoDB, personal_id: int, password: str) -> User:
@@ -30,7 +35,7 @@ async def get_user(mongo_db: MongoDB, personal_id: int, password: str) -> User:
     Returns:
         User: A User object if the user is found, else None.
     """
-    print(f"get user {personal_id, password}")
+    logger.info(f"get user {personal_id, password}")
 
     master_user = await mongo_db.get_master_user(personal_id, password)
     if master_user:
@@ -67,7 +72,7 @@ async def authenticate_user(mongo_db: MongoDB, personal_id: int, password: str) 
     Returns:
         User: A User object if authentication is successful, else False.
     """
-    print(f"authuser {personal_id, password}")
+    logger.info(f"authuser {personal_id, password}")
     user = await get_user(mongo_db, personal_id, password)
     if not user:
         return False

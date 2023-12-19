@@ -1,7 +1,12 @@
+import logging
 from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from .pydantic_forms import MasterAccount
+
+
+# Create a logger for this module
+logger = logging.getLogger(__name__)
 
 
 class MongoDB:
@@ -102,7 +107,7 @@ class MongoDB:
             ObjectId: The ObjectId of the newly inserted master account.
         """
         result = await self.master_users_collection.insert_one(account_data)
-        print(f"result id: {result.inserted_id}, {type(result.inserted_id)}")
+        logger.info(f"result id: {result.inserted_id}, {type(result.inserted_id)}")
         return result.inserted_id
 
     async def insert_client_account(self, account_data: MasterAccount) -> ObjectId:
@@ -116,7 +121,7 @@ class MongoDB:
             ObjectId: The ObjectId of the newly inserted client account.
         """
         result = await self.client_users_collection.insert_one(account_data)
-        print(f"result id: {result.inserted_id}, {type(result.inserted_id)}")
+        logger.info(f"result id: {result.inserted_id}, {type(result.inserted_id)}")
         return result.inserted_id
 
     async def login_master(self, personal_id: int, password: str) -> bool:

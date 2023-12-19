@@ -1,10 +1,17 @@
+# Load environment variables from .env file
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 if os.getenv("ENVIRONMENT") != "production":
     print("loadin environment variables from .env file")
     load_dotenv()
+
+# setup logging configuration
+import logging
+from utils.logger_config import setup_logging
+
+setup_logging()
+
 
 from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
@@ -20,6 +27,9 @@ from utils.helpers import *
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+# Create a logger for this module
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
@@ -30,7 +40,7 @@ app.mount("/vendor", StaticFiles(directory="vendor"), name="vendor")
 
 
 @app.get("/", response_class=HTMLResponse)
-async def login_page(request: Request, response: Response):
+async def login_page(request: Request):
     """
     Route to serve the index.html file.
 
@@ -103,7 +113,7 @@ async def create_master_account(
     Raises:
         HTTPException: If there are validation errors or the personal ID is already in use.
     """
-    print(master_account_data)
+    logger.info(f"this is master account data {master_account_data}")
     account_dict = dict(master_account_data)
 
     if not await mongo_db.is_master_password(account_dict.get("master_password")):
@@ -139,7 +149,7 @@ async def create_client_account(
     Raises:
         HTTPException: If there are validation errors or the personal ID is already in use.
     """
-    print(client_account_data)
+    logger.info(client_account_data)
     account_dict = dict(client_account_data)
 
     if not await mongo_db.is_master_password(account_dict.get("master_password")):
