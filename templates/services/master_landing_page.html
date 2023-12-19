@@ -9,32 +9,26 @@
     <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
 </head>
 <body>
-    <div class="landing-page">
-        <header>
-          <div class="container">
-            <a href="#" class="logo">Your <b>Website</b></a>
-            <ul class="links">
-              <li>Home</li>
-              <li>About Us</li>
-              <li>Work</li>
-              <li>Info</li>
-              <li><a href="/templates/index.html" class="logo">Exit</a></li>
-            </ul>
-          </div>
-        </header>
-        <div class="content">
-          <div class="container">
-            <div class="info">
-              <h1>Master landing page</h1>
-              <p>hello <b>{{ full_name }}</b>. In this page you'll be able to access ...</p>
-              <img src="/static/images/ECS_Logo.jpg" id="logo-image">
-            </div>
-            <div class="image">
-              <img src="https://i.postimg.cc/65QxYYzh/001234.png">
-            </div>
-          </div>
-        </div>
-    </div>
+    <nav>
+      <div class="logo">
+          <img src="/static/images/ECS_Logo.jpg" alt="Logo">
+      </div>
+      <div class="nav-links">
+          <a href="#">inventory</a>
+          <a href="#">users</a>
+          <a href="#">new signing</a>
+          <a href="#">pending signings</a>
+          <a href="#">remove signings</a>
+          <a href="#">switch signings</a>
+          <a href="#">switch requests</a>
+          <a href="#">update inventory</a>
+          <a href="#">update users</a>
+          <!-- Add more links as needed -->
+      </div>
+      <div class="exit">
+          <a href="#">Exit</a>
+      </div>
+  </nav>
     <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
