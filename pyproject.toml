@@ -16,6 +16,7 @@ motor = "^3.3.2"
 fastapi-sessions = "^0.3.2"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-dotenv = "^1.0.0"
 
 
 [build-system]

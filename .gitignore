@@ -163,3 +163,6 @@ __pycache__
 
 # JetBrains IDE Settings (e.g., PyCharm)
 .idea
+
+# dotenv environment variables file
+.env

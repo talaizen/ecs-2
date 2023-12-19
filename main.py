@@ -1,3 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+if os.getenv("ENVIRONMENT") != "production":
+    print("loadin environment variables from .env file")
+    load_dotenv()
+
 from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +17,6 @@ from utils.mongo_db import MongoDB
 from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse
 from utils.dependecy_functions import get_mongo_db
 from utils.helpers import *
-
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

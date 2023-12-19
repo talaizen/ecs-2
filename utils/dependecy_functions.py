@@ -1,3 +1,4 @@
+import os
 from .mongo_db import MongoDB
 
 
@@ -13,9 +14,9 @@ async def get_mongo_db():
         MongoDB: Instance of MongoDB.
     """
     print("starts mongo db connection")
-    MONGO_URL = "mongodb://admin:password@localhost:27017"
-    MONGO_DB_NAME = "ecs"
-    mongo_db = MongoDB(MONGO_URL, MONGO_DB_NAME)
+    MONGO_URL = os.getenv("MONGO_URL")
+    DATA_BASE_NAME = os.getenv("DATA_BASE_NAME")
+    mongo_db = MongoDB(MONGO_URL, DATA_BASE_NAME)
     try:
         yield mongo_db
     finally:
