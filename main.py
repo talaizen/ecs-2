@@ -1,17 +1,10 @@
-# Load environment variables from .env file
-import os
-from dotenv import load_dotenv
-
-if os.getenv("ENVIRONMENT") != "production":
-    print("loadin environment variables from .env file")
-    load_dotenv()
-
-# setup logging configuration
+# Initialize configuration
 import logging
-from utils.logger_config import setup_logging
+from utils.init_config import initialize
 
-setup_logging()
+initialize()
 
+from typing import List
 
 from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
@@ -21,7 +14,7 @@ from datetime import timedelta
 from starlette.responses import RedirectResponse
 
 from utils.mongo_db import MongoDB
-from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse
+from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse, InventoryCollectionItem
 from utils.dependecy_functions import get_mongo_db
 from utils.helpers import *
 
@@ -40,7 +33,7 @@ app.mount("/vendor", StaticFiles(directory="vendor"), name="vendor")
 
 
 @app.get("/", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def login_page(request: Request, response: Response):
     """
     Route to serve the index.html file.
 
@@ -50,6 +43,8 @@ async def login_page(request: Request):
     Returns:
         TemplateResponse: HTML response containing the index.html content.
     """
+    logger.info("entering index.html, resetting cookie access token")
+    response.delete_cookie(key="access_token")
     return templates.TemplateResponse("index.html", {"request": request})
 
 
@@ -71,8 +66,31 @@ async def master_landing_page(
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
     return templates.TemplateResponse(
-        "/services/master_landing_page.html",
-        {"request": request, "full_name": user.full_name},
+        "/master_user/master_landing_page.html",
+        {"request": request, "username": user.full_name},
+    )
+
+
+@app.get("/master/inventory", response_class=HTMLResponse)
+async def master_landing_page(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    """
+    Route to serve the master landing page.
+
+    Args:
+        request (Request): The incoming request.
+
+    Returns:
+        TemplateResponse: HTML response containing the master landing page content.
+    """
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/master_user/master_inventory.html",
+        {"request": request, "username": user.full_name},
     )
 
 
@@ -221,3 +239,26 @@ async def login_for_access_token(
     redirect_url = get_landing_page_url(user.type)
 
     return {"redirect_url": redirect_url}
+
+
+@app.get("/collections-data/inventory")
+async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_inventory_data():
+        data.append(
+            InventoryCollectionItem(
+            name=document.get("name"),
+            category=document.get("category"),
+            count=f'{document.get("count")} / {document.get("total_count")}',
+            color=document.get("color"),
+            palga=document.get("palga"),
+            mami_serial=document.get("mami_serial"),
+            manufacture_mkt=document.get("manufacture_mkt"),
+            katzi_mkt=document.get("katzi_mkt"),
+            serial_no=document.get("serial_no"),
+            description=document.get("description")
+            )
+        )
+    logger.info(data)
+    return data
+    

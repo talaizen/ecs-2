@@ -185,3 +185,17 @@ class ClientAccount(BaseModel):
     @classmethod
     def capitalize(cls, v: str) -> str:
         return v.capitalize()
+    
+    
+
+class InventoryCollectionItem(BaseModel):
+    name: str
+    category: str
+    count: str
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    description: str
