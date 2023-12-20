@@ -215,6 +215,9 @@ class MongoDB:
         )
         return document
     
+    async def get_client_users_data(self):
+        return self.client_users_collection.find()
+    
 
     # --------------------------------------  inventory collection  --------------------------------------
     async def get_inventory_data(self):

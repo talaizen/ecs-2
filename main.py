@@ -14,7 +14,7 @@ from datetime import timedelta
 from starlette.responses import RedirectResponse
 
 from utils.mongo_db import MongoDB
-from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse, InventoryCollectionItem
+from utils.pydantic_forms import LoginForm, MasterAccount, ClientAccount, TokenResponse, InventoryCollectionItem, ClientUserCollectionItem
 from utils.dependecy_functions import get_mongo_db
 from utils.helpers import *
 
@@ -90,6 +90,28 @@ async def master_landing_page(
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
     return templates.TemplateResponse(
         "/master_user/master_inventory.html",
+        {"request": request, "username": user.full_name},
+    )
+
+@app.get("/master/client_users", response_class=HTMLResponse)
+async def master_landing_page(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    """
+    Route to serve the master landing page.
+
+    Args:
+        request (Request): The incoming request.
+
+    Returns:
+        TemplateResponse: HTML response containing the master landing page content.
+    """
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/master_user/master_clients_table.html",
         {"request": request, "username": user.full_name},
     )
 
@@ -261,4 +283,23 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
         )
     logger.info(data)
     return data
+
+@app.get("/collections-data/client_users")
+async def get_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_client_users_data():
+        data.append(
+            ClientUserCollectionItem(
+                first_name=document.get("first_name"),
+                last_name=document.get("last_name"),
+                personal_id=document.get("personal_id"),
+                email=document.get("email"),
+                palga=document.get("palga"),
+                team=document.get("team")
+            )
+        )
+    logger.info(data)
+    return data
+
+
     

@@ -199,3 +199,11 @@ class InventoryCollectionItem(BaseModel):
     katzi_mkt: str
     serial_no: str
     description: str
+
+class ClientUserCollectionItem(BaseModel):
+    first_name: str
+    last_name: str
+    personal_id: int
+    email: str
+    palga: str
+    team: str
