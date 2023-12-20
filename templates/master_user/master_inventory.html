@@ -1,0 +1,56 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+<link rel="stylesheet" href="/static/css/master_styling/master_inventory.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Inventory</h2>
+    <table id="collectionTable" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>category</th>
+                <th>count</th>
+                <th>color</th>
+                <th>palga</th>
+                <th>mami_serial</th>
+                <th>manufacture_mkt</th>
+                <th>katzi_mkt</th>
+                <th>serial_no</th>
+                <th>description</th>
+                <!-- Add more table headers according to your MongoDB collection's schema -->
+            </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+<script>
+$(document).ready(function() {
+    $('#collectionTable').DataTable({
+        "ajax": {
+            "url": "/collections-data/inventory", // API endpoint in your FastAPI app that returns collection data
+            "dataSrc": "" // Adjust this based on the structure of your response
+        },
+        "columns": [
+            { "data": "name" }, 
+            { "data": "category" },
+            { "data": "count" }, 
+            { "data": "color" },
+            { "data": "palga" }, 
+            { "data": "mami_serial" },
+            { "data": "manufacture_mkt" }, 
+            { "data": "katzi_mkt" },
+            { "data": "serial_no" },
+            { "data": "description" }
+        ]
+    });
+});
+</script>
+{% endblock %}
