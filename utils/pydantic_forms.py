@@ -1,3 +1,4 @@
+from bson.objectid import ObjectId
 from pydantic import BaseModel, field_validator, model_validator
 
 
@@ -189,6 +190,7 @@ class ClientAccount(BaseModel):
     
 
 class InventoryCollectionItem(BaseModel):
+    object_id: str
     name: str
     category: str
     count: str
@@ -199,6 +201,7 @@ class InventoryCollectionItem(BaseModel):
     katzi_mkt: str
     serial_no: str
     description: str
+    max_amount: int
 
 class ClientUserCollectionItem(BaseModel):
     first_name: str

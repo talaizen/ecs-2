@@ -115,6 +115,28 @@ async def master_landing_page(
         {"request": request, "username": user.full_name},
     )
 
+@app.get("/master/new_signing", response_class=HTMLResponse)
+async def master_new_signing(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    """
+    Route to serve the master landing page.
+
+    Args:
+        request (Request): The incoming request.
+
+    Returns:
+        TemplateResponse: HTML response containing the master landing page content.
+    """
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/master_user/master_new_signing.html",
+        {"request": request, "username": user.full_name},
+    )
+
 
 @app.get("/client_landing_page", response_class=HTMLResponse)
 async def client_landing_page(
@@ -267,8 +289,10 @@ async def login_for_access_token(
 async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
     data = []
     async for document in await mongo_db.get_inventory_data():
+        print("this is:", document.get("_id"), type(document.get("_id")))
         data.append(
             InventoryCollectionItem(
+            object_id=str(document.get("_id")),
             name=document.get("name"),
             category=document.get("category"),
             count=f'{document.get("count")} / {document.get("total_count")}',
@@ -278,10 +302,10 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
             manufacture_mkt=document.get("manufacture_mkt"),
             katzi_mkt=document.get("katzi_mkt"),
             serial_no=document.get("serial_no"),
-            description=document.get("description")
+            description=document.get("description"),
+            max_amount=document.get("count")
             )
         )
-    logger.info(data)
     return data
 
 @app.get("/collections-data/client_users")
@@ -300,6 +324,3 @@ async def get_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)):
         )
     logger.info(data)
     return data
-
-
-    

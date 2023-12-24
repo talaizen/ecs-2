@@ -37,7 +37,7 @@
                     Actions
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
-                    <li><a class="dropdown-item" href="#">Option 1</a></li>
+                    <li><a class="dropdown-item" href="/master/new_signing">new signing</a></li>
                     <li><a class="dropdown-item" href="#">Option 2</a></li>
                 </ul>
             </div>
@@ -67,8 +67,11 @@
     {% block content %}
     {% endblock %}
 
+    <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/vendor/dataTables/js/jquery-3.5.1.js"></script>
+    <script src="/vendor/dataTables/js/jquery.dataTables.js"></script>
     {% block added_scripts %}
     {% endblock %}
-    <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

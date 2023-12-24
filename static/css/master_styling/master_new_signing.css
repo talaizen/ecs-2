@@ -1,0 +1,100 @@
+.container{
+    margin-top: 50px;
+  }
+  /* Basic styling for the DataTable */
+  #collectionTable {
+      background-color: #f8f9fa; /* Light grey background */
+      color: #333; /* Darker text for contrast */
+    }
+    
+    /* Table headers */
+    #collectionTable thead {
+      background-color: #333; /* Blue background for headers */
+      color: white; /* White text for headers */
+    }
+    
+    /* Table rows on hover */
+    #collectionTable tbody tr:hover {
+      background-color: #d0e0fc; /* Lighter blue on row hover */
+    }
+    
+    /* Table cells */
+    #collectionTable td {
+      padding: 8px; /* Adjust padding for comfort */
+      border-top: 1px solid #dee2e6; /* Border for each cell */
+    }
+    
+    /* DataTables' pagination buttons */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      color: #007bff !important; /* Blue text for buttons */
+      padding: 6px 12px; /* Padding for buttons */
+      margin-left: 5px; /* Space between buttons */
+      border: 1px solid black; /* Border color for buttons */
+      border-radius: 5px; /* Rounded corners for buttons */
+    }
+    
+    /* Pagination buttons on hover */
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background-color: #0056b3; /* Darker blue on hover */
+      color: white !important;
+    }
+    
+    /* Current page button */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current, 
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+      background-color: #007bff; /* Blue background for current page button */
+      color: white !important;
+    }
+    
+    /* Styling for the DataTables information display text */
+    .dataTables_wrapper .dataTables_info {
+      color: black !important; /* Set the text color to black */
+    }
+    
+    /* Styling for the DataTables length changing select box and label */
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_length select {
+      color: black !important; /* Set the text color to black */
+    }
+    
+    /* Styling for the DataTables filter input and label */
+    .dataTables_wrapper .dataTables_filter label,
+    .dataTables_wrapper .dataTables_filter input {
+      color: black !important; /* Set the text color to black */
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate span a {
+        color: black !important; /* Ensuring black text for pagination */
+        font-size: 1em; /* Adjust the font size as needed */
+    }
+    
+    /* Styling for active (current) page number */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background-color: #007bff !important; /* Blue background for current page */
+        color: black !important; /* White text for current page */
+    }
+    
+    /* Styling for pagination buttons on hover */
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: white !important; /* Darker blue on hover */
+        color: black !important; /* White text on hover */
+    }
+
+    #collectionTable .item-quantity {
+        width: 50px; /* Adjust the width as needed */
+        max-width: 50px; /* Ensure it doesn't grow larger */
+    }
+    
+    /* Style for rows that are valid and checked */
+#collectionTable .valid-checked {
+    background-color: green; /* Green for valid rows */
+}
+
+/* Style for rows that are invalid */
+#collectionTable .invalid-checked {
+    background-color: red; /* Red for invalid rows */
+}
+
