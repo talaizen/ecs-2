@@ -1,10 +1,13 @@
 .container{
     margin-top: 50px;
+    margin-left: 150px;
+    margin-bottom: 50px;
   }
   /* Basic styling for the DataTable */
   #collectionTable {
       background-color: #f8f9fa; /* Light grey background */
       color: #333; /* Darker text for contrast */
+      width: 100%;
     }
     
     /* Table headers */

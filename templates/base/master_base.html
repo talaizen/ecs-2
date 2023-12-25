@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECS</title>
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">  
+    <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/vendor/dataTables/css/jquery.dataTables.css">  
     <link rel="stylesheet" href="/static/css/master_styling/master_base.css">
     {% block added_styles %}
     {% endblock %}
@@ -37,8 +38,8 @@
                     Actions
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
-                    <li><a class="dropdown-item" href="/master/new_signing">new signing</a></li>
-                    <li><a class="dropdown-item" href="#">Option 2</a></li>
+                    <li><a class="dropdown-item" href="/master/verify-new-signing-access">new signing</a></li>
+                    <li><a class="dropdown-item" href="/master/pending_signings">pending signings</a></li>
                 </ul>
             </div>
             <div class="dropdown">

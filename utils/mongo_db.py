@@ -2,7 +2,7 @@ import logging
 from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .pydantic_forms import MasterAccount
+from .pydantic_forms import MasterAccount, ClientUser, MasterUser
 
 
 # Create a logger for this module
@@ -22,6 +22,7 @@ class MongoDB:
     CLIENT_USERS_COLLECTION = "client_users"
     INVENTORY_COLLECTION = "inventory"
     KITS_COLLECTION = "kits"
+    PENDING_SIGNINGS_COLLECTION = "pending_signings"
 
 
     def __init__(self, db_url: str, db_name: str) -> None:
@@ -74,6 +75,16 @@ class MongoDB:
             Collection: The MongoDB collection for client users.
         """
         return self.db[self.KITS_COLLECTION]
+    
+    @property
+    def pending_signings_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.PENDING_SIGNINGS_COLLECTION]
     
 
     # --------------------------------------  master users collection  --------------------------------------
@@ -152,6 +163,13 @@ class MongoDB:
         )
         return document
     
+    async def get_master_by_personal_id(self, personal_id) -> ClientUser or None:
+        document = await self.master_users_collection.find_one(
+            {"personal_id": personal_id}
+        )
+        if document is not None:
+            return MasterUser(**document)
+    
 
     # --------------------------------------  client users collection  --------------------------------------
     async def is_existing_client(self, personal_id) -> bool:
@@ -168,6 +186,14 @@ class MongoDB:
             {"personal_id": personal_id}
         )
         return document is not None
+    
+    async def get_client_by_personal_id(self, personal_id) -> ClientUser or None:
+        document = await self.client_users_collection.find_one(
+            {"personal_id": personal_id}
+        )
+        if document is not None:
+            return ClientUser(**document)
+
 
     async def insert_client_account(self, account_data: dict) -> ObjectId:
         """
@@ -226,6 +252,24 @@ class MongoDB:
     async def add_item_to_inventory(self, document: dict):
         result = await self.inventory_collection.insert_one(document)
         return result.inserted_id
+    
+    async def get_inventory_item_by_object_id(self, object_id: ObjectId):
+        document = await self.inventory_collection.find_one({"_id": object_id})
+        return document
+    
+    async def inventory_decrease_count_by_signing_info(self, object_id: ObjectId, quantity: int):
+        result = await self.inventory_collection.update_one({"_id": object_id}, {"$inc": {"count": -quantity}})
+        print(f"this is result {result}")
+        return result
+    
+
+    # --------------------------------------  pending signing collection  --------------------------------------
+    async def add_item_to_pending_signings(self, document: dict):
+        result = await self.pending_signings_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_pending_signings_data(self):
+        return self.pending_signings_collection.find()
 
     
     # --------------------------------------  close connection  --------------------------------------

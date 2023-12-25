@@ -1,4 +1,5 @@
 from bson.objectid import ObjectId
+from typing import List
 from pydantic import BaseModel, field_validator, model_validator
 
 
@@ -187,7 +188,6 @@ class ClientAccount(BaseModel):
     def capitalize(cls, v: str) -> str:
         return v.capitalize()
     
-    
 
 class InventoryCollectionItem(BaseModel):
     object_id: str
@@ -203,6 +203,22 @@ class InventoryCollectionItem(BaseModel):
     description: str
     max_amount: int
 
+class PendingSigningsCollectionItem(BaseModel):
+    object_id: str
+    name: str
+    category: str
+    quantity: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    item_description: str
+    signer: str
+    issuer: str
+    signing_description: str
+
 class ClientUserCollectionItem(BaseModel):
     first_name: str
     last_name: str
@@ -210,3 +226,29 @@ class ClientUserCollectionItem(BaseModel):
     email: str
     palga: str
     team: str
+
+class NewSigningAccessForm(BaseModel):
+    signer_personal_id: int
+    master_password: str
+
+class ClientUser(BaseModel):
+    first_name: str
+    last_name: str
+    personal_id: int
+    email: str
+    palga: str
+    team: str
+
+class MasterUser(BaseModel):
+    first_name: str
+    last_name: str
+    personal_id: int
+    email: str
+
+class SigningSelectedItem(BaseModel):
+    item_id: str
+    quantity: str
+
+class NewSigningData(BaseModel):
+    selected_items: List[SigningSelectedItem]
+    signing_descrition: str

@@ -29,28 +29,5 @@
 {% endblock %}
 
 {% block added_scripts %}
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
-<script>
-$(document).ready(function() {
-    $('#collectionTable').DataTable({
-        "ajax": {
-            "url": "/collections-data/inventory", // API endpoint in your FastAPI app that returns collection data
-            "dataSrc": "" // Adjust this based on the structure of your response
-        },
-        "columns": [
-            { "data": "name" }, 
-            { "data": "category" },
-            { "data": "count" }, 
-            { "data": "color" },
-            { "data": "palga" }, 
-            { "data": "mami_serial" },
-            { "data": "manufacture_mkt" }, 
-            { "data": "katzi_mkt" },
-            { "data": "serial_no" },
-            { "data": "description" }
-        ]
-    });
-});
-</script>
+<script src="/static/js/master_js/master_inventory.js"></script>
 {% endblock %}
