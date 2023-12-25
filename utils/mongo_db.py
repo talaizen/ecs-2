@@ -23,6 +23,8 @@ class MongoDB:
     INVENTORY_COLLECTION = "inventory"
     KITS_COLLECTION = "kits"
     PENDING_SIGNINGS_COLLECTION = "pending_signings"
+    SIGNINGS_COLLECTION = "signings"
+    LOGS_COLLECTION = "logs"
 
 
     def __init__(self, db_url: str, db_name: str) -> None:
@@ -86,6 +88,25 @@ class MongoDB:
         """
         return self.db[self.PENDING_SIGNINGS_COLLECTION]
     
+    @property
+    def signings_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.SIGNINGS_COLLECTION]
+    
+    @property
+    def logs_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.LOGS_COLLECTION]
 
     # --------------------------------------  master users collection  --------------------------------------
     async def is_master_password(self, password: str) -> bool:
@@ -163,7 +184,7 @@ class MongoDB:
         )
         return document
     
-    async def get_master_by_personal_id(self, personal_id) -> ClientUser or None:
+    async def get_master_by_personal_id(self, personal_id) -> MasterUser or None:
         document = await self.master_users_collection.find_one(
             {"personal_id": personal_id}
         )
@@ -262,16 +283,44 @@ class MongoDB:
         print(f"this is result {result}")
         return result
     
+    async def inventory_increase_count_by_signing_info(self, object_id: ObjectId, quantity: int):
+        result = await self.inventory_collection.update_one({"_id": object_id}, {"$inc": {"count": quantity}})
+        print(f"this is result {result}")
+        return result
+    
 
-    # --------------------------------------  pending signing collection  --------------------------------------
+    # --------------------------------------  pending signings collection  --------------------------------------
     async def add_item_to_pending_signings(self, document: dict):
         result = await self.pending_signings_collection.insert_one(document)
         return result.inserted_id
     
     async def get_pending_signings_data(self):
         return self.pending_signings_collection.find()
-
     
+    async def get_pending_signing_by_object_id(self, object_id: ObjectId):
+        document = await self.pending_signings_collection.find_one({"_id": object_id})
+        return document
+    
+    async def delete_pending_signing_by_object_id(self, object_id: ObjectId):
+        logger.info(f"deleting pendig signing with the following object id: {object_id}")
+        await self.pending_signings_collection.delete_one({"_id": object_id})    
+    
+    # --------------------------------------  signings collection  --------------------------------------
+    async def add_item_to_signings(self, document: dict):
+        result = await self.signings_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_signings_data(self):
+        return self.signings_collection.find()
+    
+    # --------------------------------------  logs collection  --------------------------------------
+    async def add_item_to_logs(self, document: dict):
+        result = await self.logs_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_logs_data(self):
+        return self.logs_collection.find()
+
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):
         """

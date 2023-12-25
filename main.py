@@ -4,7 +4,7 @@ from utils.init_config import initialize
 
 initialize()
 
-from typing import List
+from datetime import datetime
 
 from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
@@ -97,6 +97,7 @@ async def master_landing_page(
         {"request": request, "username": user.full_name},
     )
 
+
 @app.get("/master/client_users", response_class=HTMLResponse)
 async def master_landing_page(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
@@ -119,6 +120,7 @@ async def master_landing_page(
         {"request": request, "username": user.full_name},
     )
 
+
 @app.get("/master/new_signing", response_class=HTMLResponse)
 async def master_new_signing(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
@@ -136,14 +138,18 @@ async def master_new_signing(
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     session = request.session
     current_signer_personal_id = session.get("signer_personal_id", None)
-    current_signer: ClientUser = await mongo_db.get_client_by_personal_id(current_signer_personal_id)
+    current_signer: ClientUser = await mongo_db.get_client_by_personal_id(
+        current_signer_personal_id
+    )
 
     if current_signer is None:
-        return RedirectResponse(url="/master/verify-new-signing-access", status_code=status.HTTP_302_FOUND)
-    
+        return RedirectResponse(
+            url="/master/verify-new-signing-access", status_code=status.HTTP_302_FOUND
+        )
+
     return templates.TemplateResponse(
         "/master_user/master_new_signing.html",
         {"request": request, "username": user.full_name, "signer": current_signer},
@@ -303,21 +309,22 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
     async for document in await mongo_db.get_inventory_data():
         data.append(
             InventoryCollectionItem(
-            object_id=str(document.get("_id")),
-            name=document.get("name"),
-            category=document.get("category"),
-            count=f'{document.get("count")} / {document.get("total_count")}',
-            color=document.get("color"),
-            palga=document.get("palga"),
-            mami_serial=document.get("mami_serial"),
-            manufacture_mkt=document.get("manufacture_mkt"),
-            katzi_mkt=document.get("katzi_mkt"),
-            serial_no=document.get("serial_no"),
-            description=document.get("description"),
-            max_amount=document.get("count")
+                object_id=str(document.get("_id")),
+                name=document.get("name"),
+                category=document.get("category"),
+                count=f'{document.get("count")} / {document.get("total_count")}',
+                color=document.get("color"),
+                palga=document.get("palga"),
+                mami_serial=document.get("mami_serial"),
+                manufacture_mkt=document.get("manufacture_mkt"),
+                katzi_mkt=document.get("katzi_mkt"),
+                serial_no=document.get("serial_no"),
+                description=document.get("description"),
+                max_amount=document.get("count"),
             )
         )
     return data
+
 
 @app.get("/collections-data/client_users")
 async def get_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)):
@@ -330,22 +337,31 @@ async def get_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 personal_id=document.get("personal_id"),
                 email=document.get("email"),
                 palga=document.get("palga"),
-                team=document.get("team")
+                team=document.get("team"),
             )
         )
     return data
 
+
 @app.get("/master/verify-new-signing-access")
-async def get_new_signing_verification(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
+async def get_new_signing_verification(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
     try:
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse("/master_user/new_signing_lock.html", {"request": request, "username": user.full_name})
+    return templates.TemplateResponse(
+        "/master_user/new_signing_lock.html",
+        {"request": request, "username": user.full_name},
+    )
+
 
 @app.post("/master/verify-new-signing-access")
 async def new_signing_access(
-    request: Request, access_data: NewSigningAccessForm, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    access_data: NewSigningAccessForm,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     logger.info("in verify")
     try:
@@ -353,89 +369,103 @@ async def new_signing_access(
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
-    session = request.session  
+    session = request.session
     client_personal_id = access_data.signer_personal_id
     master_password = access_data.master_password
 
     if not await mongo_db.is_existing_client(client_personal_id):
         raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=f"A client with the given personal id doesn't exist: {client_personal_id}",
-    )
-    
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"A client with the given personal id doesn't exist: {client_personal_id}",
+        )
+
     if master_password != user.password:
         raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f"The given master password is incorrect",
-    )
-    
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"The given master password is incorrect",
+        )
+
     session["signer_personal_id"] = client_personal_id
-    
+
     return {"redirect_url": "/master/new_signing"}
+
 
 @app.post("/master/add_items_to_pending_signings")
 async def new_signing_access(
-    request: Request, new_signing_data: NewSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    new_signing_data: NewSigningData,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-    logger.info(f'this is selected items: {new_signing_data}')
+    logger.info(f"this is selected items: {new_signing_data}")
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
-    session = request.session 
+    session = request.session
     client_personal_id = session.get("signer_personal_id", None)
     if client_personal_id is None:
         raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f"unrecognized signer pesonal id")
-    
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"unrecognized signer pesonal id",
+        )
+
     selected_signing_items = new_signing_data.selected_items
     signing_description = new_signing_data.signing_descrition
 
     for signing_item in selected_signing_items:
         item_object_id = ObjectId(signing_item.item_id)
         signing_quantity = int(signing_item.quantity)
-        await mongo_db.inventory_decrease_count_by_signing_info(item_object_id, signing_quantity)
+        await mongo_db.inventory_decrease_count_by_signing_info(
+            item_object_id, signing_quantity
+        )
         new_pending_signing = {
             "item_id": item_object_id,
             "master_personal_id": user.personal_id,
             "client_personal_id": client_personal_id,
             "quantity": signing_quantity,
-            "description": signing_description
+            "description": signing_description,
         }
         await mongo_db.add_item_to_pending_signings(new_pending_signing)
-    
+
     return {"redirect_url": "/master/pending_signings"}
+
 
 @app.get("/collections-data/pending_signings")
 async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
     data = []
     async for document in await mongo_db.get_pending_signings_data():
-        item_info = await mongo_db.get_inventory_item_by_object_id(document.get("item_id"))
-        signer: ClientUser = await mongo_db.get_client_by_personal_id(document.get("client_personal_id"))
-        issuer: MasterUser = await mongo_db.get_master_by_personal_id(document.get("master_personal_id"))
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        signer: ClientUser = await mongo_db.get_client_by_personal_id(
+            document.get("client_personal_id")
+        )
+        issuer: MasterUser = await mongo_db.get_master_by_personal_id(
+            document.get("master_personal_id")
+        )
         print(f"this is item info {item_info}")
         data.append(
             PendingSigningsCollectionItem(
-            object_id=str(document.get("_id")),
-            name=item_info.get("name"),
-            category=item_info.get("category"),
-            quantity=document.get("quantity"),
-            color=item_info.get("color"),
-            palga=item_info.get("palga"),
-            mami_serial=item_info.get("mami_serial"),
-            manufacture_mkt=item_info.get("manufacture_mkt"),
-            katzi_mkt=item_info.get("katzi_mkt"),
-            serial_no=item_info.get("serial_no"),
-            item_description=item_info.get("description"),
-            signer=f'{signer.first_name} {signer.last_name}({signer.personal_id})',
-            issuer=f'{issuer.first_name} {issuer.last_name}({issuer.personal_id})',
-            signing_description=document.get("description")
+                object_id=str(document.get("_id")),
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description"),
+                signer=f"{signer.first_name} {signer.last_name}({signer.personal_id})",
+                issuer=f"{issuer.first_name} {issuer.last_name}({issuer.personal_id})",
+                signing_description=document.get("description"),
             )
         )
-        print(f'this is data: {data}')
+        print(f"this is data: {data}")
     return data
+
 
 @app.get("/master/pending_signings", response_class=HTMLResponse)
 async def master_pending_signings(
@@ -445,8 +475,129 @@ async def master_pending_signings(
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     return templates.TemplateResponse(
         "/master_user/master_pending_signings.html",
         {"request": request, "username": user.full_name},
     )
+
+
+@app.post("/master/delete_item_from_pending_signings")
+async def new_signing_access(
+    deleted_object: PendingSigningObjectId, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    object_id = ObjectId(deleted_object.pending_signing_id)
+    logger.info(f"in delete pen sign: {object_id}")
+    pending_signing = await mongo_db.get_pending_signing_by_object_id(object_id)
+    await mongo_db.inventory_increase_count_by_signing_info(
+        pending_signing.get("item_id"), pending_signing.get("quantity")
+    )
+    await mongo_db.delete_pending_signing_by_object_id(object_id)
+
+    return {"redirect_url": "/master/pending_signings"}
+
+
+@app.post("/master/add_items_to_signings")
+async def new_signing_access(
+    new_signing_data: AddSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    selected_pending_items = new_signing_data.selected_items
+    logger.info(f"selected add to signing: {selected_pending_items}")
+    for pending_signing_item in selected_pending_items:
+        pending_signing_object_id = ObjectId(pending_signing_item.pending_signing_id)
+        pending_signing = await mongo_db.get_pending_signing_by_object_id(
+            pending_signing_object_id
+        )
+        master_personal_id = pending_signing.get("master_personal_id")
+        client_personal_id = pending_signing.get("client_personal_id")
+        item_id = pending_signing.get("item_id")
+        quantity = pending_signing.get("quantity")
+        description = pending_signing.get("description")
+ 
+        new_signing_document = create_new_signing_document(item_id, master_personal_id, client_personal_id, quantity, description)
+        log_document = await create_new_signing_log_document(mongo_db, master_personal_id, client_personal_id, item_id, quantity)
+        await mongo_db.add_item_to_signings(new_signing_document)
+        await mongo_db.delete_pending_signing_by_object_id(pending_signing_object_id)
+        await mongo_db.add_item_to_logs(log_document)
+
+    return {"redirect_url": "/master/signings"}
+
+
+@app.get("/collections-data/signings")
+async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_signings_data():
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        signer: ClientUser = await mongo_db.get_client_by_personal_id(
+            document.get("client_personal_id")
+        )
+        issuer: MasterUser = await mongo_db.get_master_by_personal_id(
+            document.get("master_personal_id")
+        )
+        date = document.get("date").strftime("%Y-%m-%d %H:%M")
+
+        print(f"this is item info {item_info}")
+        data.append(
+            SigningsCollectionItem(
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description"),
+                signer=f"{signer.first_name} {signer.last_name}({signer.personal_id})",
+                issuer=f"{issuer.first_name} {issuer.last_name}({issuer.personal_id})",
+                signing_description=document.get("description"),
+                date=date
+            )
+        )
+        print(f"this is data: {data}")
+    return data
+
+
+@app.get("/master/signings", response_class=HTMLResponse)
+async def master_pending_signings(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    return templates.TemplateResponse(
+        "/master_user/master_signings.html",
+        {"request": request, "username": user.full_name},
+    )
+
+@app.get("/master/logs", response_class=HTMLResponse)
+async def master_logs_page(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/master_user/master_logs.html",
+        {"request": request, "username": user.full_name},
+    )
+
+
+@app.get("/collections-data/logs")
+async def get_logs(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_logs_data():
+        data.append(
+            LogCollectionItem(
+                action=document.get("action"),
+                description=document.get("description"),
+                date=document.get("date").strftime("%Y-%m-%d %H:%M")
+            )
+        )
+    return data

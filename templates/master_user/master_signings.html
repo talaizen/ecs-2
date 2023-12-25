@@ -1,0 +1,44 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_signings.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+<div class="container">
+    <h2>Signings</h2>
+    <form id="itemsForm">
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>quantity</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>item description</th>
+                    <th>signer</th>
+                    <th>issuer</th>
+                    <th>signing description</th>
+                    <th>date</th>
+                    <!-- Add more table headers according to your MongoDB collection's schema -->
+                </tr>
+            </thead>
+        </table>
+    </form>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_signings.js"></script>
+{% endblock %}

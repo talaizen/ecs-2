@@ -219,6 +219,22 @@ class PendingSigningsCollectionItem(BaseModel):
     issuer: str
     signing_description: str
 
+class SigningsCollectionItem(BaseModel):
+    name: str
+    category: str
+    quantity: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    item_description: str
+    signer: str
+    issuer: str
+    signing_description: str
+    date: str
+    
 class ClientUserCollectionItem(BaseModel):
     first_name: str
     last_name: str
@@ -226,6 +242,11 @@ class ClientUserCollectionItem(BaseModel):
     email: str
     palga: str
     team: str
+
+class LogCollectionItem(BaseModel):
+    action: str
+    description: str
+    date: str
 
 class NewSigningAccessForm(BaseModel):
     signer_personal_id: int
@@ -252,3 +273,9 @@ class SigningSelectedItem(BaseModel):
 class NewSigningData(BaseModel):
     selected_items: List[SigningSelectedItem]
     signing_descrition: str
+
+class PendingSigningObjectId(BaseModel):
+    pending_signing_id: str
+
+class AddSigningData(BaseModel):
+    selected_items: List[PendingSigningObjectId]

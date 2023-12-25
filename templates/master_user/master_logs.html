@@ -1,0 +1,26 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css">
+<link rel="stylesheet" href="/static/css/master_styling/master_logs.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Inventory</h2>
+    <table id="collectionTable" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Description</th>
+                <th>Date</th>
+                <!-- Add more table headers according to your MongoDB collection's schema -->
+            </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_logs.js"></script>
+{% endblock %}

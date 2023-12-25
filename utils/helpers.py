@@ -1,10 +1,12 @@
 import os
 import logging
+from bson import ObjectId
+
 from fastapi import Request, HTTPException, status
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 
-from .pydantic_forms import User
+from .pydantic_forms import User, ClientUser, MasterUser
 from .mongo_db import MongoDB
 
 
@@ -14,6 +16,8 @@ __all__ = [
     "create_access_token",
     "get_landing_page_url",
     "authenticate_user",
+    "create_new_signing_log_document",
+    "create_new_signing_document"
 ]
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -195,3 +199,40 @@ async def get_current_client_user(request: Request, mongo_db: MongoDB) -> User:
         raise ValueError("this url can be accessed by master users only")
 
     return user
+
+
+def generate_user_presentation(user: ClientUser or MasterUser) -> str:
+    return f"{user.first_name} {user.last_name}({user.personal_id})"
+
+
+async def create_new_signing_log_document(
+    mongo_db: MongoDB,
+    master_user_pid: int,
+    client_user_pid: int,
+    item_id: ObjectId,
+    quantity: int,
+) -> dict:
+    action = "New Signing"
+    item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
+    master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
+    client_user = await mongo_db.get_client_by_personal_id(client_user_pid)
+    description = f'{generate_user_presentation(client_user)} signed on {quantity} {item_info.get("name")}({item_info.get("color")}).\n Issued by: {generate_user_presentation(master_user)}.'
+    date = datetime.utcnow()
+    return {"action": action, "description": description, "date": date}
+
+
+def create_new_signing_document(
+    item_id: ObjectId,
+    master_personal_id: int,
+    client_personal_id: int,
+    quantity: int,
+    description: str,
+):
+    return {
+        "item_id": item_id,
+        "master_personal_id": master_personal_id,
+        "client_personal_id": client_personal_id,
+        "quantity": quantity,
+        "description": description,
+        "date": datetime.utcnow(),
+    }
