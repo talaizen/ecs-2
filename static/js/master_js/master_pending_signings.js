@@ -35,8 +35,18 @@ $(function() {
             }   // Replace with the actual data property name
             // ... Add other columns as needed ...
         ],
+        "initComplete": function(settings, json) {
+            // Once the table is initialized and data loaded, check all checkboxes
+            console.log("here init")
+            $('#checkAll').prop('checked', true);
+            var rows = table.rows({ 'search': 'applied' }).nodes();
+            $('input[type="checkbox"].row-checkbox', rows).prop('checked', true);
+        },
         // ... Additional DataTables options ...
     });
+
+    //Start with the "check all" checkbox checked
+    // $('#checkAll').prop('checked', true).trigger('click');
 
     // Handle click on "check all" box
     $('#checkAll').on('click', function() {
@@ -72,10 +82,8 @@ $(function() {
         // ... your form submission logic ...
     });
 
-    //Start with the "check all" checkbox checked
-    $('#checkAll').prop('checked', true).trigger('click');
-
-    $('#collectionTable tbody').on('click', '.delete-btn', async function() {
+    $('#collectionTable tbody').on('click', '.delete-btn', async function(e) {
+        e.preventDefault();
         let objectId = $(this).data('object-id'); // Get the object_id from the button's data attribute
         try {
             console.log("this is oi", objectId)
@@ -117,6 +125,7 @@ async function handleResponse(response) {
     if (response.ok) {
         console.log('status code ok - redirecting page')
         const redirectUrl = responseData.redirect_url;
+        console.log('this is url: ', redirectUrl);
         window.location.href = redirectUrl;
     } else {
         handleErrorResponse(response, responseData);
