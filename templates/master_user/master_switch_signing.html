@@ -1,0 +1,49 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_switch_signing.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+<div class="container">
+    <p>Select signings to switch from <b>{{ old_signer.first_name }} {{old_signer.last_name}}</b> to <b>{{ new_signer.first_name }} {{new_signer.last_name}}</b></p>
+    <h2>Switch Signing</h2>
+    <form id="itemsForm">
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>checkbox</th>
+                    <th>signer</th>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>quantity</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>item description</th>
+                    <th>signing description</th>
+                    <th>issuer</th>
+                    <th>date</th>
+                    <th>switch quantity</th>
+                    <!-- Add more table headers according to your MongoDB collection's schema -->
+                </tr>
+            </thead>
+        </table>
+        <input type="text" id="signingDescription" placeholder="signing description">
+        <button type="submit" id="submitItems">Submit</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_switch_signing.js"></script>
+{% endblock %}

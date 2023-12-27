@@ -235,7 +235,7 @@ class SigningsCollectionItem(BaseModel):
     signing_description: str
     date: str
 
-class RemoveSigningsItem(BaseModel):
+class SigningItem(BaseModel):
     signing_id: str
     name: str
     category: str
@@ -269,6 +269,11 @@ class NewSigningAccessForm(BaseModel):
     signer_personal_id: int
     master_password: str
 
+class SwitchSigningAccessForm(BaseModel):
+    old_personal_id: str
+    new_personal_id: str
+    master_password: str
+
 class ClientUser(BaseModel):
     first_name: str
     last_name: str
@@ -287,6 +292,10 @@ class SigningSelectedItem(BaseModel):
     item_id: str
     quantity: str
 
+class SwitchSelectedItem(BaseModel):
+    signing_id: str
+    quantity: str
+
 class RemoveSigningSelectedItem(BaseModel):
     signing_id: str
     quantity: str
@@ -303,3 +312,10 @@ class PendingSigningObjectId(BaseModel):
 
 class AddSigningData(BaseModel):
     selected_items: List[PendingSigningObjectId]
+
+class SwitchSigningData(BaseModel):
+    selected_items: List[SwitchSelectedItem]
+    signing_descrition: str
+
+
+

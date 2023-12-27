@@ -9,17 +9,20 @@ from utils.mongo_db import MongoDB
 from utils.dependecy_functions import get_mongo_db
 from utils.pydantic_forms import (
     NewSigningAccessForm,
+    SwitchSigningAccessForm,
     NewSigningData,
     User,
     AddSigningData,
     PendingSigningObjectId,
-    RemoveSigningData
+    RemoveSigningData,
+    SwitchSigningData
 )
 from utils.helpers import (
     get_current_master_user,
     create_new_signing_document,
     create_new_signing_log_document,
-    create_credit_log_document
+    create_credit_log_document,
+    create_switch_log_document
 )
 
 
@@ -152,18 +155,100 @@ async def new_signing_access(
 
 @router.post("/master/remove_signing")
 async def remove_signings(
-    reove_signing_data: RemoveSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request, reove_signing_data: RemoveSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
     for remove_signing_item in reove_signing_data.selected_items:
         signing_id = ObjectId(remove_signing_item.signing_id)
         quantity = int(remove_signing_item.quantity)
         signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
         inventory_item_id = signing_item.get("item_id")
         credit_log_document = await create_credit_log_document(
-            mongo_db, signing_item.get("master_personal_id"), signing_item.get("client_personal_id"), inventory_item_id, quantity
+            mongo_db, user.personal_id, signing_item.get("client_personal_id"), inventory_item_id, quantity
         )
         await mongo_db.remove_signing(signing_id, quantity)
         await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)
         await mongo_db.add_item_to_logs(credit_log_document)
 
     return {"redirect_url": "/master/remove_signing"}
+
+@router.post("/master/verify-switch-signing-access")
+async def new_signing_access(
+    request: Request,
+    access_data: SwitchSigningAccessForm,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    logger.info("in verify switch signing")
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    session = request.session
+    old_personal_id = int(access_data.old_personal_id)
+    new_personal_id = int(access_data.new_personal_id)
+    master_password = access_data.master_password
+
+    if not await mongo_db.is_existing_client(old_personal_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"A client with the given personal id doesn't exist: {old_personal_id}",
+        )
+    
+    if not await mongo_db.is_existing_client(new_personal_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"A client with the given personal id doesn't exist: {new_personal_id}",
+        )
+    
+
+    if master_password != user.password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"The given master password is incorrect",
+        )
+
+    session["switch_old_personal_id"] = old_personal_id
+    session["switch_new_personal_id"] = new_personal_id
+
+    return {"redirect_url": "/master/switch_signing"}
+
+
+@router.post("/master/switch_signing")
+async def remove_signings(
+    request: Request, switch_signing_data: SwitchSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    print("catch 1")
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    session = request.session
+    old_personal_id = session.get("switch_old_personal_id", None)
+    new_personal_id = session.get("switch_new_personal_id", None)
+    if old_personal_id is None:
+        raise ValueError("can't detect old signer personal id")
+
+    if new_personal_id is None:
+        raise ValueError("can't detect new signer personal id")
+    
+    switch_selected_items = switch_signing_data.selected_items
+    switch_signing_description = switch_signing_data.signing_descrition
+    print("catch 2")
+    for switch_signing_item in switch_selected_items:
+        signing_id = ObjectId(switch_signing_item.signing_id)
+        quantity = int(switch_signing_item.quantity)
+        signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
+        inventory_item_id = signing_item.get("item_id")
+        print("catch 3")
+        switch_log_document = await create_switch_log_document(
+            mongo_db, user.personal_id, old_personal_id, new_personal_id, inventory_item_id, quantity
+        )
+        await mongo_db.switch_signing(signing_id, quantity, new_personal_id, user.personal_id, switch_signing_description)
+        await mongo_db.add_item_to_logs(switch_log_document)
+
+    return {"redirect_url": "/master/signings"}

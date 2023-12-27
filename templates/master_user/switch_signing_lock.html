@@ -1,0 +1,45 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/index.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+
+<div class="login-box">
+    <img src="/static/images/Signing-Pen.jpg">
+    <h2>Switch Signing</h2>
+
+    <form>
+        <div class="user-box">
+            <input type="text" id="old-personal-id">
+            <label>Signed User Personal ID</label>
+        </div>
+
+        <div class="user-box">
+            <input type="text" id="new-personal-id">
+            <label>New Signer Personal ID</label>
+        </div>
+
+        <div class="user-box">
+            <input type="password" id="pwd">
+            <label>Logged In Master Password ({{ username }})</label>
+        </div>
+
+        <input type="checkbox" id="showPassword">
+        <label for="showPassword" id="showPasswordLabel">Show Password</label>
+
+        <button type="button" onclick="verifyAccess()">Submit</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/switch_signing_lock.js"></script>
+{% endblock %}

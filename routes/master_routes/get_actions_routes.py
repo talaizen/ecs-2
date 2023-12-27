@@ -79,3 +79,56 @@ async def remove_signing(
         "/master_user/master_remove_signing.html",
         {"request": request, "username": user.full_name},
     )
+
+@router.get("/master/verify-switch-signing-access")
+async def get_new_signing_verification(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse(
+        "/master_user/switch_signing_lock.html",
+        {"request": request, "username": user.full_name},
+    )
+
+@router.get("/master/switch_signing", response_class=HTMLResponse)
+async def master_new_signing(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    """
+    Route to serve the master landing page.
+
+    Args:
+        request (Request): The incoming request.
+
+    Returns:
+        TemplateResponse: HTML response containing the master landing page content.
+    """
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    session = request.session
+    old_personal_id = session.get("switch_old_personal_id", None)
+    new_personal_id = session.get("switch_new_personal_id", None)
+
+    old_signer: ClientUser = await mongo_db.get_client_by_personal_id(
+        old_personal_id
+    )
+
+    new_signer: ClientUser = await mongo_db.get_client_by_personal_id(
+        new_personal_id
+    )
+
+    if old_signer is None or new_signer is None:
+        return RedirectResponse(
+            url="/master/verify-switch-signing-access", status_code=status.HTTP_302_FOUND
+        )
+
+    return templates.TemplateResponse(
+        "/master_user/master_switch_signing.html",
+        {"request": request, "username": user.full_name, "old_signer": old_signer, "new_signer": new_signer},
+    )
