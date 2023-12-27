@@ -220,6 +220,21 @@ async def create_new_signing_log_document(
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
+async def create_credit_log_document(
+    mongo_db: MongoDB,
+    master_user_pid: int,
+    client_user_pid: int,
+    item_id: ObjectId,
+    quantity: int,
+) -> dict:
+    action = "Credit"
+    item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
+    master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
+    client_user = await mongo_db.get_client_by_personal_id(client_user_pid)
+    description = f'{generate_user_presentation(client_user)} credited {quantity} {item_info.get("name")}({item_info.get("color")}).\n credited by: {generate_user_presentation(master_user)}.'
+    date = datetime.utcnow()
+    return {"action": action, "description": description, "date": date}
+
 
 def create_new_signing_document(
     item_id: ObjectId,

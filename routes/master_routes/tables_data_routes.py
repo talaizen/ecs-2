@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from utils.mongo_db import MongoDB
 from utils.dependecy_functions import get_mongo_db
+from utils.helpers import generate_user_presentation
 from utils.pydantic_forms import (
     LogCollectionItem,
     ClientUser,
@@ -13,6 +14,7 @@ from utils.pydantic_forms import (
     PendingSigningsCollectionItem,
     ClientUserCollectionItem,
     InventoryCollectionItem,
+    RemoveSigningsItem
 )
 
 
@@ -64,8 +66,8 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 katzi_mkt=item_info.get("katzi_mkt"),
                 serial_no=item_info.get("serial_no"),
                 item_description=item_info.get("description"),
-                signer=f"{signer.first_name} {signer.last_name}({signer.personal_id})",
-                issuer=f"{issuer.first_name} {issuer.last_name}({issuer.personal_id})",
+                signer=generate_user_presentation(signer),
+                issuer=generate_user_presentation(issuer),
                 signing_description=document.get("description"),
                 date=date,
             )
@@ -100,8 +102,8 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 katzi_mkt=item_info.get("katzi_mkt"),
                 serial_no=item_info.get("serial_no"),
                 item_description=item_info.get("description"),
-                signer=f"{signer.first_name} {signer.last_name}({signer.personal_id})",
-                issuer=f"{issuer.first_name} {issuer.last_name}({issuer.personal_id})",
+                signer=generate_user_presentation(signer),
+                issuer=generate_user_presentation(issuer),
                 signing_description=document.get("description"),
             )
         )
@@ -145,4 +147,39 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 max_amount=document.get("count"),
             )
         )
+    return data
+
+@router.get("/collections-data/remove_signing")
+async def get_remove_signing_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_signings_data():
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        signer: ClientUser = await mongo_db.get_client_by_personal_id(
+            document.get("client_personal_id")
+        )
+        issuer: MasterUser = await mongo_db.get_master_by_personal_id(
+            document.get("master_personal_id")
+        )
+        date = document.get("date").strftime("%Y-%m-%d %H:%M")
+        data.append(
+                    RemoveSigningsItem(
+                        signing_id=str(document.get("_id")),
+                        name=item_info.get("name"),
+                        category=item_info.get("category"),
+                        quantity=document.get("quantity"),
+                        color=item_info.get("color"),
+                        palga=item_info.get("palga"),
+                        mami_serial=item_info.get("mami_serial"),
+                        manufacture_mkt=item_info.get("manufacture_mkt"),
+                        katzi_mkt=item_info.get("katzi_mkt"),
+                        serial_no=item_info.get("serial_no"),
+                        item_description=item_info.get("description"),
+                        signer=generate_user_presentation(signer),
+                        issuer=generate_user_presentation(issuer),
+                        signing_description=document.get("description"),
+                        date=date,
+                    )
+                )
     return data

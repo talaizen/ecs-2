@@ -13,11 +13,13 @@ from utils.pydantic_forms import (
     User,
     AddSigningData,
     PendingSigningObjectId,
+    RemoveSigningData
 )
 from utils.helpers import (
     get_current_master_user,
     create_new_signing_document,
     create_new_signing_log_document,
+    create_credit_log_document
 )
 
 
@@ -87,7 +89,7 @@ async def new_signing_access(
     for signing_item in selected_signing_items:
         item_object_id = ObjectId(signing_item.item_id)
         signing_quantity = int(signing_item.quantity)
-        await mongo_db.inventory_decrease_count_by_signing_info(
+        await mongo_db.inventory_decrease_count_by_quantity(
             item_object_id, signing_quantity
         )
         new_pending_signing = {
@@ -109,7 +111,7 @@ async def delete_item_from_pending_signings(
     object_id = ObjectId(deleted_object.pending_signing_id)
     logger.info(f"in delete pen sign: {object_id}")
     pending_signing = await mongo_db.get_pending_signing_by_object_id(object_id)
-    await mongo_db.inventory_increase_count_by_signing_info(
+    await mongo_db.inventory_increase_count_quantity(
         pending_signing.get("item_id"), pending_signing.get("quantity")
     )
     await mongo_db.delete_pending_signing_by_object_id(object_id)
@@ -147,3 +149,21 @@ async def new_signing_access(
     print(" sending redirection signings")
 
     return {"redirect_url": "/master/signings"}
+
+@router.post("/master/remove_signing")
+async def remove_signings(
+    reove_signing_data: RemoveSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    for remove_signing_item in reove_signing_data.selected_items:
+        signing_id = ObjectId(remove_signing_item.signing_id)
+        quantity = int(remove_signing_item.quantity)
+        signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
+        inventory_item_id = signing_item.get("item_id")
+        credit_log_document = await create_credit_log_document(
+            mongo_db, signing_item.get("master_personal_id"), signing_item.get("client_personal_id"), inventory_item_id, quantity
+        )
+        await mongo_db.remove_signing(signing_id, quantity)
+        await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)
+        await mongo_db.add_item_to_logs(credit_log_document)
+
+    return {"redirect_url": "/master/remove_signing"}

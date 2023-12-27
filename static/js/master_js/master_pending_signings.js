@@ -13,6 +13,7 @@ $(function() {
                 },
                 "orderable": false
             },
+            { "data": "signer" },  // Replace with the actual data property name
             { "data": "name" },  // Replace with the actual data property name
             { "data": "category" },   // Replace with the actual data property name
             { "data": "quantity" },  // Replace with the actual data property name
@@ -23,9 +24,8 @@ $(function() {
             { "data": "katzi_mkt" },   // Replace with the actual data property name
             { "data": "serial_no" },  // Replace with the actual data property name
             { "data": "item_description" },   // Replace with the actual data property name
-            { "data": "signer" },  // Replace with the actual data property name
-            { "data": "issuer" },   // Replace with the actual data property name
             { "data": "signing_description" },
+            { "data": "issuer" },   // Replace with the actual data property name
             {
                 "data": "object_id", // assuming object_id is the field name in your data
                 "render": function(data, type, row) {

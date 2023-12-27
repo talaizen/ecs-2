@@ -278,12 +278,12 @@ class MongoDB:
         document = await self.inventory_collection.find_one({"_id": object_id})
         return document
     
-    async def inventory_decrease_count_by_signing_info(self, object_id: ObjectId, quantity: int):
+    async def inventory_decrease_count_by_quantity(self, object_id: ObjectId, quantity: int):
         result = await self.inventory_collection.update_one({"_id": object_id}, {"$inc": {"count": -quantity}})
         print(f"this is result {result}")
         return result
     
-    async def inventory_increase_count_by_signing_info(self, object_id: ObjectId, quantity: int):
+    async def inventory_increase_count_quantity(self, object_id: ObjectId, quantity: int):
         result = await self.inventory_collection.update_one({"_id": object_id}, {"$inc": {"count": quantity}})
         print(f"this is result {result}")
         return result
@@ -312,6 +312,19 @@ class MongoDB:
     
     async def get_signings_data(self):
         return self.signings_collection.find()
+    
+    async def get_signing_item_by_object_id(self, signing_id: ObjectId):
+        document = await self.signings_collection.find_one({"_id": signing_id})
+        return document
+    
+    async def remove_signing(self, signing_id: ObjectId, quantity: int):
+        document = await self.signings_collection.find_one({"_id": signing_id})
+        if document.get("quantity") == quantity:
+            await self.signings_collection.delete_one({"_id": signing_id})
+        elif document.get("quantity") > quantity:
+            await self.signings_collection.update_one({"_id": signing_id}, {"$inc": {"quantity": -quantity}})
+        else:
+            raise ValueError("invalid signing id or quantity")
     
     # --------------------------------------  logs collection  --------------------------------------
     async def add_item_to_logs(self, document: dict):

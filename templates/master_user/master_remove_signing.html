@@ -1,7 +1,7 @@
 {% extends "base/master_base.html" %}
 
 {% block added_styles %}
-<link rel="stylesheet" href="/static/css/master_styling/master_signings.css">
+<link rel="stylesheet" href="/static/css/master_styling/master_remove_signing.css">
 {% endblock %}
 
 {% block content %}
@@ -12,11 +12,12 @@
     </div>
 </div>
 <div class="container">
-    <h2>Signings</h2>
+    <h2>Remove Signings</h2>
     <form id="itemsForm">
         <table id="collectionTable" class="display" style="width:100%">
             <thead>
                 <tr>
+                    <th>checkbox</th>
                     <th>signer</th>
                     <th>name</th>
                     <th>category</th>
@@ -31,14 +32,16 @@
                     <th>signing description</th>
                     <th>issuer</th>
                     <th>date</th>
+                    <th>remove</th>
                     <!-- Add more table headers according to your MongoDB collection's schema -->
                 </tr>
             </thead>
         </table>
+        <button type="submit" id="submitItems">Submit</button>
     </form>
 </div>
 {% endblock %}
 
 {% block added_scripts %}
-<script src="/static/js/master_js/master_signings.js"></script>
+<script src="/static/js/master_js/master_remove_signing.js"></script>
 {% endblock %}

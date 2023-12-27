@@ -234,6 +234,23 @@ class SigningsCollectionItem(BaseModel):
     issuer: str
     signing_description: str
     date: str
+
+class RemoveSigningsItem(BaseModel):
+    signing_id: str
+    name: str
+    category: str
+    quantity: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    item_description: str
+    signer: str
+    issuer: str
+    signing_description: str
+    date: str
     
 class ClientUserCollectionItem(BaseModel):
     first_name: str
@@ -270,9 +287,16 @@ class SigningSelectedItem(BaseModel):
     item_id: str
     quantity: str
 
+class RemoveSigningSelectedItem(BaseModel):
+    signing_id: str
+    quantity: str
+
 class NewSigningData(BaseModel):
     selected_items: List[SigningSelectedItem]
     signing_descrition: str
+
+class RemoveSigningData(BaseModel):
+    selected_items: List[RemoveSigningSelectedItem]
 
 class PendingSigningObjectId(BaseModel):
     pending_signing_id: str

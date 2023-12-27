@@ -65,3 +65,17 @@ async def get_new_signing_verification(
         "/master_user/new_signing_lock.html",
         {"request": request, "username": user.full_name},
     )
+
+@router.get("/master/remove_signing", response_class=HTMLResponse)
+async def remove_signing(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_remove_signing.html",
+        {"request": request, "username": user.full_name},
+    )
