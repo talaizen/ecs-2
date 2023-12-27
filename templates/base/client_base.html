@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECS</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/vendor/bootstrap-5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/vendor/dataTables/css/jquery.dataTables.css">  
+    <link rel="stylesheet" href="/static/css/client_styling/client_base.css">
+    {% block added_styles %}
+    {% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="nav-left">
+            <div class="logo">
+                <img src="/static/images/ECS_Logo.jpg" alt="Logo">
+            </div>
+            <div class="user-info">
+                Logged as: {{ username }}
+            </div>
+        </div>
+        <div class="nav-middle">
+            <!-- Dropdowns here -->
+            <!-- Example for one dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="tablesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Tables
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="tablesDropdown">
+                    <li><a class="dropdown-item" href="/client/inventory">inventory</a></li>
+                    <li><a class="dropdown-item" href="/client/signings">signings</a></li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Actions
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
+                    <li><a class="dropdown-item" href="#">Option 1</a></li>
+                    <li><a class="dropdown-item" href="#">Option 2</a></li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Status
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="statusDropdown">
+                    <li><a class="dropdown-item" href="#">Option 1</a></li>
+                    <li><a class="dropdown-item" href="#">Option 2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="/" class="exit">Exit</a>
+        </div>
+    </nav>
+    {% block content %}
+    {% endblock %}
+
+    <script src="/vendor/bootstrap-5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/vendor/dataTables/js/jquery-3.5.1.js"></script>
+    <script src="/vendor/dataTables/js/jquery.dataTables.js"></script>
+    {% block added_scripts %}
+    {% endblock %}
+
+</body>
+</html>

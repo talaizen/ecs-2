@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/master/inventory", response_class=HTMLResponse)
-async def master_landing_page(
+async def master_inventory(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
     """

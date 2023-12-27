@@ -40,7 +40,7 @@ async def get_logs(mongo_db: MongoDB = Depends(get_mongo_db)):
 
 
 @router.get("/collections-data/signings")
-async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+async def get_signings_data(mongo_db: MongoDB = Depends(get_mongo_db)):
     data = []
     async for document in await mongo_db.get_signings_data():
         item_info = await mongo_db.get_inventory_item_by_object_id(
