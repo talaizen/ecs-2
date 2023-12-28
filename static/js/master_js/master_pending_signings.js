@@ -59,11 +59,21 @@ $(function() {
         e.preventDefault();
 
         let checkedObjectIds = [];
-    // Iterate over all checkboxes and collect the object IDs of checked ones
-        $('#collectionTable .row-checkbox:checked').each(function() {
-            let objectId = $(this).data('object-id')
-            checkedObjectIds.push({pending_signing_id: objectId});
+
+        table.rows().every(function() {
+            let row = this.node(); // DOM node for the row
+            let $row = $(row); // jQuery object for the row
+            let $checkbox = $row.find('.row-checkbox'); // Find the checkbox in this row
+
+            // Check if the checkbox in this row is checked
+            if ($checkbox.is(':checked')) {
+                // If checked, get the data-object-id attribute value
+                let objectId = $checkbox.data('object-id');
+                checkedObjectIds.push({pending_signing_id: objectId});
+            }
         });
+
+
         try {
             console.log(checkedObjectIds)
             const response = await fetch('/master/add_items_to_signings', {
