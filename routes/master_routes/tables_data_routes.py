@@ -186,7 +186,7 @@ async def get_remove_signing_data(mongo_db: MongoDB = Depends(get_mongo_db)):
 
 
 @router.get("/collections-data/switch_signing")
-async def get_remove_signing_data(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
+async def get_switch_signing_data(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     data = []
     session = request.session
     client_old_personal_id = session.get("switch_old_personal_id", None)

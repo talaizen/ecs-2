@@ -251,6 +251,24 @@ class SigningItem(BaseModel):
     issuer: str
     signing_description: str
     date: str
+
+class SwitchRequestItem(BaseModel):
+    request_id: str
+    name: str
+    category: str
+    quantity: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    item_description: str
+    signer: str
+    signing_description: str
+    new_signer: str
+    switch_description: str
+    status: str
     
 class ClientUserCollectionItem(BaseModel):
     first_name: str
@@ -273,6 +291,11 @@ class SwitchSigningAccessForm(BaseModel):
     old_personal_id: str
     new_personal_id: str
     master_password: str
+
+class ClientSwitchSigningAccessForm(BaseModel):
+    new_personal_id: str
+    client_password: str
+
 
 class ClientUser(BaseModel):
     first_name: str

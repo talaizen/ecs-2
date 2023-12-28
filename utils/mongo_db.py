@@ -26,6 +26,7 @@ class MongoDB:
     PENDING_SIGNINGS_COLLECTION = "pending_signings"
     SIGNINGS_COLLECTION = "signings"
     LOGS_COLLECTION = "logs"
+    SWITCH_REQUESTS_COLLECTION = "switch_requests"
 
 
     def __init__(self, db_url: str, db_name: str) -> None:
@@ -108,6 +109,16 @@ class MongoDB:
             Collection: The MongoDB collection for client users.
         """
         return self.db[self.LOGS_COLLECTION]
+    
+    @property
+    def switch_requests_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.SWITCH_REQUESTS_COLLECTION]
 
     # --------------------------------------  master users collection  --------------------------------------
     async def is_master_password(self, password: str) -> bool:
@@ -348,6 +359,14 @@ class MongoDB:
     
     async def get_logs_data(self):
         return self.logs_collection.find()
+    
+    # --------------------------------------  switch requests  ----------------------------------------
+    async def add_item_to_switch_requests(self, document: dict):
+        result = await self.switch_requests_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_switch_requests_by_personal_id(self, personal_id: int):
+        return self.switch_requests_collection.find({"old_pid": personal_id})
 
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):

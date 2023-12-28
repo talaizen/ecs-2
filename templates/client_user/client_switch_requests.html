@@ -1,0 +1,38 @@
+{% extends "base/client_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/client_styling/client_switch_requests.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Your Switch Requests Status</h2>
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>signer</th>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>switch quantity</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>item description</th>
+                    <th>signing description</th>
+                    <th>new signer</th>
+                    <th>switch_description</th>
+                    <th>status</th>
+                    <th>cancel</th>
+                    <!-- Add more table headers according to your MongoDB collection's schema -->
+                </tr>
+            </thead>
+        </table>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/client_js/client_switch_requests.js"></script>
+{% endblock %}

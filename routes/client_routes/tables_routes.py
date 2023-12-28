@@ -52,3 +52,17 @@ async def master_pending_signings(
         "/client_user/client_signings.html",
         {"request": request, "username": user.full_name},
     )
+
+@router.get("/client/switch_requests", response_class=HTMLResponse)
+async def client_switch_requests(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_client_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    return templates.TemplateResponse(
+        "/client_user/client_switch_requests.html",
+        {"request": request, "username": user.full_name}
+    )

@@ -20,6 +20,8 @@ from routes.master_routes.post_actions_routes import router as master_post_actio
 
 from routes.client_routes.tables_routes import router as client_tables_routes
 from routes.client_routes.tables_data_routes import router as client_tables_data_routes
+from routes.client_routes.get_actions_routes import router as client_get_actions_routes
+from routes.client_routes.post_actions_routes import router as client_post_actions_routes
 
 logger = logging.getLogger(__name__)
 
@@ -48,5 +50,7 @@ app.include_router(master_post_actions_routes)
 # Client routes
 app.include_router(client_tables_routes)
 app.include_router(client_tables_data_routes)
+app.include_router(client_get_actions_routes)
+app.include_router(client_post_actions_routes)
 
 

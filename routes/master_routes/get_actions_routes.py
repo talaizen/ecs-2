@@ -81,7 +81,7 @@ async def remove_signing(
     )
 
 @router.get("/master/verify-switch-signing-access")
-async def get_new_signing_verification(
+async def get_switch_signing_verification(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
     try:
@@ -94,7 +94,7 @@ async def get_new_signing_verification(
     )
 
 @router.get("/master/switch_signing", response_class=HTMLResponse)
-async def master_new_signing(
+async def master_switch_signing(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
     """
