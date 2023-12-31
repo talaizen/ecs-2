@@ -333,8 +333,20 @@ class RemoveSigningData(BaseModel):
 class PendingSigningObjectId(BaseModel):
     pending_signing_id: str
 
+class SwitchRequestObjectId(BaseModel):
+    switch_request_id: str
+
+class CanceledSwitchRequest(BaseModel):
+    canceled_request_id: str
+
 class AddSigningData(BaseModel):
     selected_items: List[PendingSigningObjectId]
+
+class ApproveSwitchRequestData(BaseModel):
+    selected_requests: List[SwitchRequestObjectId]
+
+class RejectSwitchRequestData(BaseModel):
+    selected_requests: List[SwitchRequestObjectId]
 
 class SwitchSigningData(BaseModel):
     selected_items: List[SwitchSelectedItem]

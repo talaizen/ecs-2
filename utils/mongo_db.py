@@ -361,12 +361,33 @@ class MongoDB:
         return self.logs_collection.find()
     
     # --------------------------------------  switch requests  ----------------------------------------
+    async def get_switch_requests(self):
+        return self.switch_requests_collection.find()
+    
+    async def get_switch_request_by_id(self, request_id: ObjectId):
+        return await self.switch_requests_collection.find_one({"_id": request_id})
+    
     async def add_item_to_switch_requests(self, document: dict):
         result = await self.switch_requests_collection.insert_one(document)
         return result.inserted_id
     
-    async def get_switch_requests_by_personal_id(self, personal_id: int):
+    async def get_switch_requests_by_old_signer_pid(self, personal_id: int):
         return self.switch_requests_collection.find({"old_pid": personal_id})
+    
+    async def get_switch_requests_by_new_signer_pid(self, personal_id: int):
+        return self.switch_requests_collection.find({"new_pid": personal_id})
+    
+    async def delete_switch_request_by_id(self, request_id: ObjectId):
+        await self.switch_requests_collection.delete_one({"_id": request_id})
+    
+    async def approve_switch_request_by_id(self, request_id: ObjectId):
+        await self.switch_requests_collection.update_one({"_id": request_id}, {"$set": {"status": 2}}) # 2 is representing status being parsed later
+    
+    async def reject_status_switch_request_by_id(self, request_id: ObjectId):
+        await self.switch_requests_collection.update_one({"_id": request_id}, {"$set": {"status": 3}})
+    
+    async def reject_switch_request_by_id(self, request_id: ObjectId):
+        await self.switch_requests_collection.delete_one({"_id": request_id})
 
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):

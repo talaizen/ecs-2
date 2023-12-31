@@ -16,7 +16,10 @@ from utils.pydantic_forms import (
     PendingSigningObjectId,
     RemoveSigningData,
     SwitchSigningData, 
-    ClientSwitchSigningAccessForm
+    ClientSwitchSigningAccessForm,
+    CanceledSwitchRequest,
+    ApproveSwitchRequestData,
+    RejectSwitchRequestData
 )
 from utils.helpers import (
     get_current_client_user,
@@ -99,11 +102,35 @@ async def client_switch_signings(
             "status": 1
         }
         await mongo_db.add_item_to_switch_requests(switch_request_document)
-        # print("catch 3")
-        # switch_log_document = await create_switch_log_document(
-        #     mongo_db, user.personal_id, old_personal_id, new_personal_id, inventory_item_id, quantity
-        # )
-        # await mongo_db.switch_signing(signing_id, quantity, new_personal_id, user.personal_id, switch_signing_description)
-        # await mongo_db.add_item_to_logs(switch_log_document)
+    return {"redirect_url": "/client/switch_requests"}
 
-    return {"redirect_url": "/client/signings"}
+@router.post("/client/cancel_switch_request")
+async def delete_item_from_pending_signings(
+    canceled_request: CanceledSwitchRequest, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    object_id = ObjectId(canceled_request.canceled_request_id)
+    await mongo_db.delete_switch_request_by_id(object_id)
+
+    return {"redirect_url": "/client/switch_requests"}
+
+@router.post("/client/approve_switch_rquest")
+async def approve_switch_rquest(
+    approved_rquests_object: ApproveSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    approved_requests = approved_rquests_object.selected_requests
+    for approved_request in approved_requests:
+        switch_request_id = ObjectId(approved_request.switch_request_id)
+        await mongo_db.approve_switch_request_by_id(switch_request_id)
+    
+    return {"redirect_url": "/client/approve_switch_requests"}
+
+@router.post("/client/reject_switch_rquest")
+async def reject_switch_rquest(
+    rejected_rquests_object: RejectSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    rejected_requests = rejected_rquests_object.selected_requests
+    for rejected_request in rejected_requests:
+        switch_request_id = ObjectId(rejected_request.switch_request_id)
+        await mongo_db.reject_switch_request_by_id(switch_request_id)
+    
+    return {"redirect_url": "/client/approve_switch_requests"}

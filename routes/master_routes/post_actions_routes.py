@@ -15,7 +15,9 @@ from utils.pydantic_forms import (
     AddSigningData,
     PendingSigningObjectId,
     RemoveSigningData,
-    SwitchSigningData
+    SwitchSigningData,
+    RejectSwitchRequestData,
+    ApproveSwitchRequestData
 )
 from utils.helpers import (
     get_current_master_user,
@@ -222,7 +224,6 @@ async def new_signing_access(
 async def remove_signings(
     request: Request, switch_signing_data: SwitchSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    print("catch 1")
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
@@ -238,13 +239,12 @@ async def remove_signings(
     
     switch_selected_items = switch_signing_data.selected_items
     switch_signing_description = switch_signing_data.signing_descrition
-    print("catch 2")
+
     for switch_signing_item in switch_selected_items:
         signing_id = ObjectId(switch_signing_item.signing_id)
         quantity = int(switch_signing_item.quantity)
         signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
         inventory_item_id = signing_item.get("item_id")
-        print("catch 3")
         switch_log_document = await create_switch_log_document(
             mongo_db, user.personal_id, old_personal_id, new_personal_id, inventory_item_id, quantity
         )
@@ -252,3 +252,48 @@ async def remove_signings(
         await mongo_db.add_item_to_logs(switch_log_document)
 
     return {"redirect_url": "/master/signings"}
+
+@router.post("/master/reject_switch_rquest")
+async def reject_switch_rquest(
+    rejected_rquests_object: RejectSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    rejected_requests = rejected_rquests_object.selected_requests
+    for rejected_request in rejected_requests:
+        switch_request_id = ObjectId(rejected_request.switch_request_id)
+        await mongo_db.reject_switch_request_by_id(switch_request_id)
+    
+    return {"redirect_url": "/master/approve_switch_requests"}
+
+@router.post("/master/approve_switch_rquest")
+async def approve_switch_rquest(
+    request: Request, approved_rquests_object: ApproveSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    approved_requests = approved_rquests_object.selected_requests
+    for approved_request in approved_requests:
+        switch_request_id = ObjectId(approved_request.switch_request_id)
+        request_item = await mongo_db.get_switch_request_by_id(switch_request_id)
+        request_quantity = request_item.get("quantity")
+        signing_id = request_item.get("signing_id")
+        signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
+        inventory_item_id = signing_item.get("item_id")
+        if signing_item is None or signing_item.get("client_personal_id") != request_item.get("old_pid"):
+            await mongo_db.reject_status_switch_request_by_id(switch_request_id)
+            return {"redirect_url": "/master/approve_switch_requests"}
+
+        if not request_quantity <= signing_item.get("quantity"):
+            await mongo_db.reject_status_switch_request_by_id(switch_request_id)
+            return {"redirect_url": "/master/approve_switch_requests"}
+
+        switch_log_document = await create_switch_log_document(
+            mongo_db, user.personal_id, request_item.get("old_pid"), request_item.get("new_pid"), inventory_item_id, request_quantity
+        )
+        await mongo_db.switch_signing(signing_id, request_quantity, request_item.get("new_pid"), user.personal_id, request_item.get("description"))
+        await mongo_db.add_item_to_logs(switch_log_document)
+        await mongo_db.delete_switch_request_by_id(switch_request_id)
+    
+    return {"redirect_url": "/master/approve_switch_requests"}
