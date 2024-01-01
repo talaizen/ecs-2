@@ -132,3 +132,17 @@ async def master_switch_signing(
         "/master_user/master_switch_signing.html",
         {"request": request, "username": user.full_name, "old_signer": old_signer, "new_signer": new_signer},
     )
+
+@router.get("/master/update_users", response_class=HTMLResponse)
+async def update_users(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_update_users.html",
+        {"request": request, "username": user.full_name},
+    )

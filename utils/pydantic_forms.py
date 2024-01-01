@@ -277,6 +277,16 @@ class ClientUserCollectionItem(BaseModel):
     email: str
     palga: str
     team: str
+    
+class UpdateClientUserCollectionItem(BaseModel):
+    user_id: str
+    first_name: str
+    last_name: str
+    personal_id: int
+    email: str
+    palga: str
+    team: str
+    password: str
 
 class LogCollectionItem(BaseModel):
     action: str
@@ -332,6 +342,9 @@ class RemoveSigningData(BaseModel):
 
 class PendingSigningObjectId(BaseModel):
     pending_signing_id: str
+
+class ClientUserObjectId(BaseModel):
+    user_id: str
 
 class SwitchRequestObjectId(BaseModel):
     switch_request_id: str

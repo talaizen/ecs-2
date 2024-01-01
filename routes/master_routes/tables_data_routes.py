@@ -15,7 +15,8 @@ from utils.pydantic_forms import (
     ClientUserCollectionItem,
     InventoryCollectionItem,
     SigningItem,
-    SwitchRequestItem
+    SwitchRequestItem,
+    UpdateClientUserCollectionItem
 )
 
 
@@ -262,4 +263,22 @@ async def get_approve_switch_requests(request: Request, mongo_db: MongoDB = Depe
                         status=switch_status
                     )
                 )
+    return data
+
+@router.get("/collections-data/update_client_users")
+async def get_update_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_client_users_data():
+        data.append(
+            UpdateClientUserCollectionItem(
+                user_id=str(document.get("_id")),
+                first_name=document.get("first_name"),
+                last_name=document.get("last_name"),
+                personal_id=document.get("personal_id"),
+                email=document.get("email"),
+                palga=document.get("palga"),
+                team=document.get("team"),
+                password=document.get("password")
+            )
+        )
     return data

@@ -1,12 +1,18 @@
 {% extends "base/master_base.html" %}
 
 {% block added_styles %}
-<link rel="stylesheet" href="/static/css/master_styling/master_clients_table.css">
+<link rel="stylesheet" href="/static/css/master_styling/master_update_users.css">
 {% endblock %}
 
 {% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
 <div class="container">
-    <h2>Client Users</h2>
+    <h2>Client Users Updates</h2>
     <table id="collectionTable" class="display" style="width:100%">
         <thead>
             <tr>
@@ -16,6 +22,8 @@
                 <th>email</th>
                 <th>palga</th>
                 <th>team</th>
+                <th>password</th>
+                <th>delete</th>
             </tr>
         </thead>
     </table>
@@ -23,5 +31,5 @@
 {% endblock %}
 
 {% block added_scripts %}
-<script src="/static/js/master_js/master_clients_table.js"></script>
+<script src="/static/js/master_js/master_update_users.js"></script>
 {% endblock %}

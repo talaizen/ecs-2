@@ -17,7 +17,9 @@ from utils.pydantic_forms import (
     RemoveSigningData,
     SwitchSigningData,
     RejectSwitchRequestData,
-    ApproveSwitchRequestData
+    ApproveSwitchRequestData,
+    ClientUserObjectId,
+    ClientUser
 )
 from utils.helpers import (
     get_current_master_user,
@@ -297,3 +299,38 @@ async def approve_switch_rquest(
         await mongo_db.delete_switch_request_by_id(switch_request_id)
     
     return {"redirect_url": "/master/approve_switch_requests"}
+
+
+@router.post("/master/delete_client_user")
+async def delete_client_user(
+    deleted_object: ClientUserObjectId, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    user_id = ObjectId(deleted_object.user_id)
+    cliet_user: ClientUser = await mongo_db.get_client_by_object_id(user_id)
+    client_personal_id = cliet_user.personal_id
+
+    involved_signings = await mongo_db.involved_signing_by_personal_id(client_personal_id)
+    logger.info(f"this is involved: {involved_signings}")
+    if involved_signings:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This user can't be deleted. it has open signings",
+        )
+
+    involved_pending_signings = await mongo_db.get_pending_signing_by_client_pid(client_personal_id)
+    if involved_pending_signings:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This user can't be deleted. it has open pending signings",
+        )
+    
+    involved_in_switch_requests = await mongo_db.involved_in_switch_requests(client_personal_id)
+    if involved_in_switch_requests:
+          raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This user can't be deleted. it has open switch requests",
+        )
+    
+    await mongo_db.delete_client_user(user_id)
+
+    return {"redirect_url": "/master/update_users"}

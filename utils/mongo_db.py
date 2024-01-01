@@ -226,6 +226,13 @@ class MongoDB:
         )
         if document is not None:
             return ClientUser(**document)
+        
+    async def get_client_by_object_id(self, user_id: ObjectId) -> ClientUser or None:
+        document = await self.client_users_collection.find_one(
+            {"_id": user_id}
+        )
+        if document is not None:
+            return ClientUser(**document)
 
 
     async def insert_client_account(self, account_data: dict) -> ObjectId:
@@ -277,6 +284,9 @@ class MongoDB:
     async def get_client_users_data(self):
         return self.client_users_collection.find()
     
+    async def delete_client_user(self, user_id: ObjectId):
+        await self.client_users_collection.delete_one({"_id": user_id})
+    
 
     # --------------------------------------  inventory collection  --------------------------------------
     async def get_inventory_data(self):
@@ -313,6 +323,9 @@ class MongoDB:
         document = await self.pending_signings_collection.find_one({"_id": object_id})
         return document
     
+    async def get_pending_signing_by_client_pid(self, client_pid: int):
+        return await self.pending_signings_collection.find_one({"client_personal_id": client_pid})
+    
     async def delete_pending_signing_by_object_id(self, object_id: ObjectId):
         logger.info(f"deleting pendig signing with the following object id: {object_id}")
         await self.pending_signings_collection.delete_one({"_id": object_id})    
@@ -326,7 +339,8 @@ class MongoDB:
         return self.signings_collection.find()
     
     async def get_signings_data_by_personal_id(self, personal_id: int):
-        return self.signings_collection.find({"client_personal_id": personal_id})
+        document = self.signings_collection.find({"client_personal_id": personal_id})
+        return document
     
     async def get_signing_item_by_object_id(self, signing_id: ObjectId):
         document = await self.signings_collection.find_one({"_id": signing_id})
@@ -351,6 +365,10 @@ class MongoDB:
             await self.signings_collection.insert_one({"item_id": document.get("item_id"), "master_personal_id": master_pid, "client_personal_id": client_pid, "quantity": quantity, "description": signing_description, "date": date})
         else:
             raise ValueError("invalid signing id or quantity")
+        
+    async def involved_signing_by_personal_id(self, personal_id: int):
+        document = await self.signings_collection.find_one({"client_personal_id": personal_id})
+        return document
     
     # --------------------------------------  logs collection  --------------------------------------
     async def add_item_to_logs(self, document: dict):
@@ -388,6 +406,15 @@ class MongoDB:
     
     async def reject_switch_request_by_id(self, request_id: ObjectId):
         await self.switch_requests_collection.delete_one({"_id": request_id})
+
+    async def involved_in_switch_requests(self, personal_id: int):
+        query = {
+            "$or": [
+                {"new_pid": personal_id},
+                {"old_pid": personal_id}
+            ]
+        }
+        return await self.switch_requests_collection.find_one(query)
 
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):
