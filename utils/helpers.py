@@ -267,3 +267,15 @@ def create_new_signing_document(
         "description": description,
         "date": datetime.utcnow(),
     }
+
+async def create_delete_item_log_document(
+    mongo_db: MongoDB,
+    item_id: ObjectId,
+    master_user_pid: int
+) -> dict:
+    action = "Delete Inventory Item"
+    item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
+    master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
+    description = f'{generate_user_presentation(master_user)} deleted item from inventory: {item_info.get("name")}({item_info.get("color")}).'
+    date = datetime.utcnow()
+    return {"action": action, "description": description, "date": date}

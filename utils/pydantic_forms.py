@@ -203,6 +203,20 @@ class InventoryCollectionItem(BaseModel):
     description: str
     max_amount: int
 
+class UpdateInventoryCollectionItem(BaseModel):
+    object_id: str
+    name: str
+    category: str
+    count: str
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    description: str
+    max_amount: int
+
 class PendingSigningsCollectionItem(BaseModel):
     object_id: str
     name: str
@@ -364,6 +378,22 @@ class RejectSwitchRequestData(BaseModel):
 class SwitchSigningData(BaseModel):
     selected_items: List[SwitchSelectedItem]
     signing_descrition: str
+
+class InventoryCollectionItemUpdates(BaseModel):
+    item_id: str
+    name: str
+    category: str
+    total_count: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    description: str
+
+class InventoryDelteItem(BaseModel):
+    item_id: str
 
 
 

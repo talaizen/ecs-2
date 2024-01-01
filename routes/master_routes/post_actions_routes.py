@@ -19,14 +19,17 @@ from utils.pydantic_forms import (
     RejectSwitchRequestData,
     ApproveSwitchRequestData,
     ClientUserObjectId,
-    ClientUser
+    ClientUser,
+    InventoryCollectionItemUpdates,
+    InventoryDelteItem
 )
 from utils.helpers import (
     get_current_master_user,
     create_new_signing_document,
     create_new_signing_log_document,
     create_credit_log_document,
-    create_switch_log_document
+    create_switch_log_document,
+    create_delete_item_log_document
 )
 
 
@@ -334,3 +337,65 @@ async def delete_client_user(
     await mongo_db.delete_client_user(user_id)
 
     return {"redirect_url": "/master/update_users"}
+
+@router.post("/master/update_inventory")
+async def approve_switch_rquest(
+    request: Request, inventory_edit_object: InventoryCollectionItemUpdates, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    item_id = ObjectId(inventory_edit_object.item_id)
+    total_count = inventory_edit_object.total_count
+
+    inventory_item = await mongo_db.get_inventory_item_by_object_id(item_id)
+    current_total_count = inventory_item.get("total_count")
+    current_count = inventory_item.get("count")
+    if total_count >= current_total_count:
+        new_count = current_count + (total_count - current_total_count)
+    else:
+        if current_count > total_count:
+            raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"total count can't be smaller than available items count",
+        )
+        new_count = current_count
+    
+    await mongo_db.edit_inventory_item_by_id(item_id, inventory_edit_object, new_count)
+    
+    return {"redirect_url": "/master/update_inventory"}
+
+@router.post("/master/delete_item_from_inventory")
+async def approve_switch_rquest(
+    request: Request, delete_object: InventoryDelteItem, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    item_id = ObjectId(delete_object.item_id)
+
+    involved_singings = await mongo_db.get_involved_item_in_signings(item_id)
+    involved_pending_singings = await mongo_db.get_involved_item_in_pending_signings(item_id)
+
+    if involved_singings:
+         raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This item can't be deleted. it has open signings",
+        )
+    
+    if involved_pending_singings:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This item can't be deleted. it has open pending signings",
+        )
+
+    log_document = await create_delete_item_log_document(mongo_db, item_id, user.personal_id)
+    logger.info(f"log documrnt: {log_document ,type(log_document)}")
+    await mongo_db.delete_item_from_inventory(item_id)
+    await mongo_db.add_item_to_logs(log_document)
+    
+    return {"redirect_url": "/master/update_inventory"}

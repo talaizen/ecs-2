@@ -282,3 +282,25 @@ async def get_update_client_users_data(mongo_db: MongoDB = Depends(get_mongo_db)
             )
         )
     return data
+
+@router.get("/collections-data/inventory_update")
+async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_inventory_data():
+        data.append(
+            InventoryCollectionItem(
+                object_id=str(document.get("_id")),
+                name=document.get("name"),
+                category=document.get("category"),
+                count=f'{document.get("count")} / {document.get("total_count")}',
+                color=document.get("color"),
+                palga=document.get("palga"),
+                mami_serial=document.get("mami_serial"),
+                manufacture_mkt=document.get("manufacture_mkt"),
+                katzi_mkt=document.get("katzi_mkt"),
+                serial_no=document.get("serial_no"),
+                description=document.get("description"),
+                max_amount=document.get("count"),
+            )
+        )
+    return data

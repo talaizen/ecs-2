@@ -146,3 +146,17 @@ async def update_users(
         "/master_user/master_update_users.html",
         {"request": request, "username": user.full_name},
     )
+
+@router.get("/master/update_inventory", response_class=HTMLResponse)
+async def update_users(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_update_inventory.html",
+        {"request": request, "username": user.full_name},
+    )

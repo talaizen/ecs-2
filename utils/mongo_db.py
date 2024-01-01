@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 from datetime import datetime
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .pydantic_forms import MasterAccount, ClientUser, MasterUser
+from .pydantic_forms import MasterAccount, ClientUser, MasterUser, InventoryCollectionItemUpdates
 
 
 # Create a logger for this module
@@ -310,6 +310,28 @@ class MongoDB:
         print(f"this is result {result}")
         return result
     
+    async def edit_inventory_item_by_id(self, item_id: ObjectId, new_info: InventoryCollectionItemUpdates, new_count: int):
+        result = await self.inventory_collection.update_one(
+            {"_id": item_id},
+            {"$set":
+              {
+               "name": new_info.name,
+               "category": new_info.category,
+               "count": new_count,
+               "color": new_info.color,
+               "palga": new_info.palga,
+               "mami_serial": new_info.mami_serial,
+               "manufacture_mkt": new_info.manufacture_mkt,
+               "katzi_mkt": new_info.katzi_mkt,
+               "serial_no": new_info.serial_no,
+               "description": new_info.description,
+               "total_count": new_info.total_count
+               }})
+        return result
+    
+    async def delete_item_from_inventory(self, item_id: ObjectId):
+        await self.inventory_collection.delete_one({"_id": item_id})
+    
 
     # --------------------------------------  pending signings collection  --------------------------------------
     async def add_item_to_pending_signings(self, document: dict):
@@ -329,6 +351,9 @@ class MongoDB:
     async def delete_pending_signing_by_object_id(self, object_id: ObjectId):
         logger.info(f"deleting pendig signing with the following object id: {object_id}")
         await self.pending_signings_collection.delete_one({"_id": object_id})    
+
+    async def get_involved_item_in_pending_signings(self, item_id: ObjectId):
+        return await self.pending_signings_collection.find_one({"item_id": item_id})
     
     # --------------------------------------  signings collection  --------------------------------------
     async def add_item_to_signings(self, document: dict):
@@ -370,6 +395,8 @@ class MongoDB:
         document = await self.signings_collection.find_one({"client_personal_id": personal_id})
         return document
     
+    async def get_involved_item_in_signings(self, item_id: ObjectId):
+        return await self.signings_collection.find_one({"item_id": item_id})
     # --------------------------------------  logs collection  --------------------------------------
     async def add_item_to_logs(self, document: dict):
         result = await self.logs_collection.insert_one(document)
