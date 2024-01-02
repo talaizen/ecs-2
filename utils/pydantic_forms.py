@@ -395,5 +395,18 @@ class InventoryCollectionItemUpdates(BaseModel):
 class InventoryDelteItem(BaseModel):
     item_id: str
 
+class InventoryAddItem(BaseModel):
+    name: str
+    category: str
+    total_count: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    description: str
+
+
 
 

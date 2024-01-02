@@ -21,7 +21,8 @@ from utils.pydantic_forms import (
     ClientUserObjectId,
     ClientUser,
     InventoryCollectionItemUpdates,
-    InventoryDelteItem
+    InventoryDelteItem,
+    InventoryAddItem
 )
 from utils.helpers import (
     get_current_master_user,
@@ -397,5 +398,29 @@ async def approve_switch_rquest(
     logger.info(f"log documrnt: {log_document ,type(log_document)}")
     await mongo_db.delete_item_from_inventory(item_id)
     await mongo_db.add_item_to_logs(log_document)
+    
+    return {"redirect_url": "/master/update_inventory"}
+
+@router.post("/master/add_item_to_inventory")
+async def add_item_to_inventory(
+    item_object: InventoryAddItem, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    print("I'm here")
+    item_dict = {
+        "name": item_object.name,
+        "category": item_object.category,
+        "count": item_object.total_count,
+        "total_count":  item_object.total_count,
+        "color": item_object.color,
+        "palga": item_object.palga,
+        "mami_serial": item_object.mami_serial,
+        "manufacture_mkt": item_object.manufacture_mkt,
+        "katzi_mkt": item_object.katzi_mkt,
+        "serial_no": item_object.serial_no,
+        "description": item_object.description
+    }
+    print("here", item_dict)
+
+    await mongo_db.add_item_to_inventory(item_dict)
     
     return {"redirect_url": "/master/update_inventory"}

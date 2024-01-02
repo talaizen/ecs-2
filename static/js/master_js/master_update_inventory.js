@@ -37,6 +37,10 @@ $(document).ready(function() {
     });
 });
 
+document.getElementById('addItemBtn').addEventListener('click', function() {
+    $('#addModal').modal('show');
+});
+
 document.getElementById('confirmDelete').addEventListener('click', async function() {
     // perform the deletion action
     // Close the modal after action
@@ -122,6 +126,42 @@ function prepareRequestData(element) {
     }
 }
 
+function prepareAddItemRequestData() {
+    return {
+        name: $('#addItemName').val(),
+        category: $('#addItemCategory').val(),
+        total_count: parseInt($('#addItemCount').val(), 10),
+        color: $('#addItemColor').val(),
+        palga: $('#addItemPalga').val(),
+        mami_serial: $('#addItemMamiSerial').val(),
+        manufacture_mkt: $('#addItemManufactureMkt').val(),
+        katzi_mkt: $('#addItemKatziMkt').val(),
+        serial_no: $('#addItemSerialNo').val(),
+        description: $('#addItemDescription').val()
+    }
+}
+
+$('#addForm').on('submit', async function(e) {
+    e.preventDefault();
+
+    let requestData = prepareAddItemRequestData($(this));
+    try {
+        console.log("sending: ", requestData)
+        const response = await fetch('/master/add_item_to_inventory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+        console.log("this is response: ", response)
+        handleResponse(response);
+    } catch (error) {
+        console.error('Error creating master user:', error);
+        showFailureAlert('An unexpected error occurred.');
+    }
+});
+
 async function handleResponse(response) {
     const responseData = await response.json();
 
@@ -161,7 +201,7 @@ document.getElementById('alert-container').style.display = 'none';
 }
 
 function askConfirmation(itemId) {
-    var myModal = new bootstrap.Modal(document.getElementById('confirmationModal'), {
+    let myModal = new bootstrap.Modal(document.getElementById('confirmationModal'), {
       keyboard: false
     });
     $('#confirmationModal').data('item-id', itemId);
