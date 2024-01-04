@@ -1,0 +1,32 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/index.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+
+<div class="login-box">
+    <h2>New Kit</h2>
+        <div class="user-box">
+            <input type="text" id="kitName">
+            <label>New Kit Name</label>
+        </div>
+        <div class="user-box">
+            <input type="text" id="kitPalga">
+            <label>New Kit Palga</label>
+        </div>
+
+        <button type="button" id="newKitSubmit">Submit</button>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_kit_lock.js"></script>
+{% endblock %}

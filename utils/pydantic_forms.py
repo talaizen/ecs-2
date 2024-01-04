@@ -407,6 +407,45 @@ class InventoryAddItem(BaseModel):
     serial_no: str
     description: str
 
+class NewKitLock(BaseModel):
+    kit_name: str
+    palga: str
 
+class KitSelectedItem(BaseModel):
+    item_id: str
+    quantity: str
 
+class NewKitItems(BaseModel):
+    selected_items: List[KitSelectedItem]
+    kit_descrition: str
+
+class KitsCollectionItem(BaseModel):
+    kit_id: str
+    kit_name: str
+    kit_description: str
+
+class KitContent(BaseModel):
+    kit_id: str
+
+class KitContentCollectionItem(BaseModel):
+    name: str
+    category: str
+    quantity: int
+    color: str
+    palga: str
+    mami_serial: str
+    manufacture_mkt: str
+    katzi_mkt: str
+    serial_no: str
+    item_description: str
+
+class KitRemoveItemsCollectionItem(KitContentCollectionItem):
+    kit_item_id: str
+
+class RemoveKitItemSelectedItem(BaseModel):
+    kit_item_id: str
+    quantity: str
+
+class RemoveKitItemData(BaseModel):
+    selected_items: List[RemoveKitItemSelectedItem]
 

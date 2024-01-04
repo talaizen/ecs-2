@@ -1,4 +1,5 @@
 import logging
+from bson import ObjectId
 
 from fastapi import APIRouter, Depends, Request, status, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -144,7 +145,7 @@ async def update_users(
     
     return templates.TemplateResponse(
         "/master_user/master_update_users.html",
-        {"request": request, "username": user.full_name},
+        {"request": request, "username": user.full_name}
     )
 
 @router.get("/master/update_inventory", response_class=HTMLResponse)
@@ -158,5 +159,87 @@ async def update_users(
     
     return templates.TemplateResponse(
         "/master_user/master_update_inventory.html",
-        {"request": request, "username": user.full_name},
+        {"request": request, "username": user.full_name}
+    )
+
+@router.get("/master/kits", response_class=HTMLResponse)
+async def kits(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_kits.html",
+        {"request": request, "username": user.full_name}
+    )
+
+@router.get("/master/new_kit", response_class=HTMLResponse)
+async def kits(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_kit_lock.html",
+        {"request": request, "username": user.full_name}
+    )
+
+@router.get("/master/new_kit_items", response_class=HTMLResponse)
+async def new_kit_items(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    session = request.session
+    kit_name = session.get("new_kit_name", None)
+    print("this is kit name", kit_name)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_new_kit_items.html",
+        {"request": request, "username": user.full_name, "kit_name": kit_name}
+    )
+
+@router.get("/master/kit_content/{kit_id}", response_class=HTMLResponse)
+async def kit_content(
+    kit_id: str, request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    kit_object_id = ObjectId(kit_id)
+    kit_object = await mongo_db.get_kit_by_id(kit_object_id)
+    kit_description = await mongo_db.get_kit_description_from_inventory(kit_object_id)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_kit_content.html",
+        {"request": request, "username": user.full_name, "kit_name": kit_object.get("name"), "kit_id": kit_id, "kit_description": kit_description}
+    )
+    
+@router.get("/master/kit_remove_items/{kit_id}", response_class=HTMLResponse)
+async def kit_content(
+    kit_id: str, request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    kit_object_id = ObjectId(kit_id)
+    kit_object = await mongo_db.get_kit_by_id(kit_object_id)
+    kit_description = await mongo_db.get_kit_description_from_inventory(kit_object_id)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_kit_remove_items.html",
+        {"request": request, "username": user.full_name, "kit_name": kit_object.get("name"), "kit_id": kit_id, "kit_description": kit_description}
     )

@@ -1,0 +1,35 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_kits.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <input type="hidden" id="kitId" value="{{ kit_id }}">
+    <h2><b>{{ kit_name }}</b> kit content</h2>
+    <h6>kit description: {{ kit_description }}</h3>
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>quantity</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>description</th>
+                </tr>
+            </thead>
+        </table>
+
+        
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_kit_content.js"></script>
+{% endblock %}

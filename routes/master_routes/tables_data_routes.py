@@ -1,4 +1,5 @@
 import logging
+from bson import ObjectId
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
@@ -16,7 +17,10 @@ from utils.pydantic_forms import (
     InventoryCollectionItem,
     SigningItem,
     SwitchRequestItem,
-    UpdateClientUserCollectionItem
+    UpdateClientUserCollectionItem,
+    KitsCollectionItem,
+    KitContentCollectionItem,
+    KitRemoveItemsCollectionItem
 )
 
 
@@ -303,4 +307,72 @@ async def get_inventory_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 max_amount=document.get("count"),
             )
         )
+    return data
+
+
+@router.get("/collections-data/kits")
+async def get_kits_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_kits_data():
+        kit_description = await mongo_db.get_kit_description_from_inventory(document.get("_id"))
+        data.append(
+            KitsCollectionItem(
+                kit_id=str(document.get("_id")),
+                kit_name=document.get("name"),
+                kit_description=kit_description
+            )
+        )
+    return data
+
+@router.get("/collections-data/kit_content/{kit_id}")
+async def get_kits_data(kit_id: str, mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_kit_items_by_id(ObjectId(kit_id)):
+        print("this is document", document)
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+
+        data.append(
+            KitContentCollectionItem(
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description")
+            )
+        )
+    return data
+
+
+@router.get("/collections-data/kit_remove_items/{kit_id}")
+async def get_kit_remove_item_data(kit_id: str, mongo_db: MongoDB = Depends(get_mongo_db)):
+    print("I'm here")
+    data = []
+    async for document in await mongo_db.get_kit_items_by_id(ObjectId(kit_id)):
+        print("in remove", document)
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        data.append(
+                KitRemoveItemsCollectionItem(
+                kit_item_id=str(document.get("_id")),
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description")
+            )
+        )
+                
     return data

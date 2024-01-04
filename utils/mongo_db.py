@@ -27,6 +27,7 @@ class MongoDB:
     SIGNINGS_COLLECTION = "signings"
     LOGS_COLLECTION = "logs"
     SWITCH_REQUESTS_COLLECTION = "switch_requests"
+    KITS_ITEMS_COLLECTION = "kits_items"
 
 
     def __init__(self, db_url: str, db_name: str) -> None:
@@ -120,6 +121,15 @@ class MongoDB:
         """
         return self.db[self.SWITCH_REQUESTS_COLLECTION]
 
+    @property
+    def kits_items_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.KITS_ITEMS_COLLECTION]
     # --------------------------------------  master users collection  --------------------------------------
     async def is_master_password(self, password: str) -> bool:
         """
@@ -332,6 +342,11 @@ class MongoDB:
     async def delete_item_from_inventory(self, item_id: ObjectId):
         await self.inventory_collection.delete_one({"_id": item_id})
     
+    async def get_kit_description_from_inventory(self, kit_id: ObjectId):
+        document = await self.inventory_collection.find_one({"kit_id": kit_id})
+        if document:
+            return document.get("description")
+    
 
     # --------------------------------------  pending signings collection  --------------------------------------
     async def add_item_to_pending_signings(self, document: dict):
@@ -442,6 +457,42 @@ class MongoDB:
             ]
         }
         return await self.switch_requests_collection.find_one(query)
+    
+    # --------------------------------------  kits collection  ----------------------------------------
+
+    async def involved_kit_by_name(self, kit_name: str):
+        return await self.kits_collection.find_one({"name": kit_name})
+    
+    async def insert_new_kit(self, document: dict):
+        result = await self.kits_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_kits_data(self):
+        return self.kits_collection.find()
+    
+    async def get_kit_by_id(self, kit_id: ObjectId):
+        return await self.kits_collection.find_one({"_id": kit_id})
+    
+    # --------------------------------------  kit items collection  ----------------------------------------
+
+    async def add_doc_to_kits_items(self, document: dict):
+        result = await self.kits_items_collection.insert_one(document)
+        return result.inserted_id
+    
+    async def get_kit_items_by_id(self, kit_id: ObjectId):
+        return self.kits_items_collection.find({"kit_id": kit_id})
+    
+    async def get_kit_item_object_by_id(self, kit_item_id: ObjectId):
+        return await self.kits_items_collection.find_one({"_id": kit_item_id})
+    
+    async def remove_kit_item(self, kit_item_id: ObjectId, quantity: int):
+        document = await self.kits_items_collection.find_one({"_id": kit_item_id})
+        if document.get("quantity") == quantity:
+            await self.kits_items_collection.delete_one({"_id": kit_item_id})
+        elif document.get("quantity") > quantity:
+            await self.kits_items_collection.update_one({"_id": kit_item_id}, {"$inc": {"quantity": -quantity}})
+        else:
+            raise ValueError("invalid signing id or quantity")
 
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):

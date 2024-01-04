@@ -22,7 +22,11 @@ from utils.pydantic_forms import (
     ClientUser,
     InventoryCollectionItemUpdates,
     InventoryDelteItem,
-    InventoryAddItem
+    InventoryAddItem,
+    NewKitLock,
+    NewKitItems,
+    KitContent,
+    RemoveKitItemData,
 )
 from utils.helpers import (
     get_current_master_user,
@@ -30,7 +34,7 @@ from utils.helpers import (
     create_new_signing_log_document,
     create_credit_log_document,
     create_switch_log_document,
-    create_delete_item_log_document
+    create_delete_item_log_document,
 )
 
 
@@ -161,28 +165,36 @@ async def new_signing_access(
 
     return {"redirect_url": "/master/signings"}
 
+
 @router.post("/master/remove_signing")
 async def remove_signings(
-    request: Request, reove_signing_data: RemoveSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    reove_signing_data: RemoveSigningData,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     for remove_signing_item in reove_signing_data.selected_items:
         signing_id = ObjectId(remove_signing_item.signing_id)
         quantity = int(remove_signing_item.quantity)
         signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
         inventory_item_id = signing_item.get("item_id")
         credit_log_document = await create_credit_log_document(
-            mongo_db, user.personal_id, signing_item.get("client_personal_id"), inventory_item_id, quantity
+            mongo_db,
+            user.personal_id,
+            signing_item.get("client_personal_id"),
+            inventory_item_id,
+            quantity,
         )
         await mongo_db.remove_signing(signing_id, quantity)
         await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)
         await mongo_db.add_item_to_logs(credit_log_document)
 
     return {"redirect_url": "/master/remove_signing"}
+
 
 @router.post("/master/verify-switch-signing-access")
 async def new_signing_access(
@@ -206,13 +218,12 @@ async def new_signing_access(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A client with the given personal id doesn't exist: {old_personal_id}",
         )
-    
+
     if not await mongo_db.is_existing_client(new_personal_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A client with the given personal id doesn't exist: {new_personal_id}",
         )
-    
 
     if master_password != user.password:
         raise HTTPException(
@@ -228,7 +239,9 @@ async def new_signing_access(
 
 @router.post("/master/switch_signing")
 async def remove_signings(
-    request: Request, switch_signing_data: SwitchSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    switch_signing_data: SwitchSigningData,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     try:
         user: User = await get_current_master_user(request, mongo_db)
@@ -242,7 +255,7 @@ async def remove_signings(
 
     if new_personal_id is None:
         raise ValueError("can't detect new signer personal id")
-    
+
     switch_selected_items = switch_signing_data.selected_items
     switch_signing_description = switch_signing_data.signing_descrition
 
@@ -252,33 +265,49 @@ async def remove_signings(
         signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
         inventory_item_id = signing_item.get("item_id")
         switch_log_document = await create_switch_log_document(
-            mongo_db, user.personal_id, old_personal_id, new_personal_id, inventory_item_id, quantity
+            mongo_db,
+            user.personal_id,
+            old_personal_id,
+            new_personal_id,
+            inventory_item_id,
+            quantity,
         )
-        await mongo_db.switch_signing(signing_id, quantity, new_personal_id, user.personal_id, switch_signing_description)
+        await mongo_db.switch_signing(
+            signing_id,
+            quantity,
+            new_personal_id,
+            user.personal_id,
+            switch_signing_description,
+        )
         await mongo_db.add_item_to_logs(switch_log_document)
 
     return {"redirect_url": "/master/signings"}
 
+
 @router.post("/master/reject_switch_rquest")
 async def reject_switch_rquest(
-    rejected_rquests_object: RejectSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+    rejected_rquests_object: RejectSwitchRequestData,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     rejected_requests = rejected_rquests_object.selected_requests
     for rejected_request in rejected_requests:
         switch_request_id = ObjectId(rejected_request.switch_request_id)
         await mongo_db.reject_switch_request_by_id(switch_request_id)
-    
+
     return {"redirect_url": "/master/approve_switch_requests"}
+
 
 @router.post("/master/approve_switch_rquest")
 async def approve_switch_rquest(
-    request: Request, approved_rquests_object: ApproveSwitchRequestData, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    approved_rquests_object: ApproveSwitchRequestData,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     approved_requests = approved_rquests_object.selected_requests
     for approved_request in approved_requests:
         switch_request_id = ObjectId(approved_request.switch_request_id)
@@ -287,7 +316,9 @@ async def approve_switch_rquest(
         signing_id = request_item.get("signing_id")
         signing_item = await mongo_db.get_signing_item_by_object_id(signing_id)
         inventory_item_id = signing_item.get("item_id")
-        if signing_item is None or signing_item.get("client_personal_id") != request_item.get("old_pid"):
+        if signing_item is None or signing_item.get(
+            "client_personal_id"
+        ) != request_item.get("old_pid"):
             await mongo_db.reject_status_switch_request_by_id(switch_request_id)
             return {"redirect_url": "/master/approve_switch_requests"}
 
@@ -296,12 +327,23 @@ async def approve_switch_rquest(
             return {"redirect_url": "/master/approve_switch_requests"}
 
         switch_log_document = await create_switch_log_document(
-            mongo_db, user.personal_id, request_item.get("old_pid"), request_item.get("new_pid"), inventory_item_id, request_quantity
+            mongo_db,
+            user.personal_id,
+            request_item.get("old_pid"),
+            request_item.get("new_pid"),
+            inventory_item_id,
+            request_quantity,
         )
-        await mongo_db.switch_signing(signing_id, request_quantity, request_item.get("new_pid"), user.personal_id, request_item.get("description"))
+        await mongo_db.switch_signing(
+            signing_id,
+            request_quantity,
+            request_item.get("new_pid"),
+            user.personal_id,
+            request_item.get("description"),
+        )
         await mongo_db.add_item_to_logs(switch_log_document)
         await mongo_db.delete_switch_request_by_id(switch_request_id)
-    
+
     return {"redirect_url": "/master/approve_switch_requests"}
 
 
@@ -313,7 +355,9 @@ async def delete_client_user(
     cliet_user: ClientUser = await mongo_db.get_client_by_object_id(user_id)
     client_personal_id = cliet_user.personal_id
 
-    involved_signings = await mongo_db.involved_signing_by_personal_id(client_personal_id)
+    involved_signings = await mongo_db.involved_signing_by_personal_id(
+        client_personal_id
+    )
     logger.info(f"this is involved: {involved_signings}")
     if involved_signings:
         raise HTTPException(
@@ -321,33 +365,40 @@ async def delete_client_user(
             detail=f"This user can't be deleted. it has open signings",
         )
 
-    involved_pending_signings = await mongo_db.get_pending_signing_by_client_pid(client_personal_id)
+    involved_pending_signings = await mongo_db.get_pending_signing_by_client_pid(
+        client_personal_id
+    )
     if involved_pending_signings:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This user can't be deleted. it has open pending signings",
         )
-    
-    involved_in_switch_requests = await mongo_db.involved_in_switch_requests(client_personal_id)
+
+    involved_in_switch_requests = await mongo_db.involved_in_switch_requests(
+        client_personal_id
+    )
     if involved_in_switch_requests:
-          raise HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This user can't be deleted. it has open switch requests",
         )
-    
+
     await mongo_db.delete_client_user(user_id)
 
     return {"redirect_url": "/master/update_users"}
 
+
 @router.post("/master/update_inventory")
 async def approve_switch_rquest(
-    request: Request, inventory_edit_object: InventoryCollectionItemUpdates, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    inventory_edit_object: InventoryCollectionItemUpdates,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     item_id = ObjectId(inventory_edit_object.item_id)
     total_count = inventory_edit_object.total_count
 
@@ -359,47 +410,55 @@ async def approve_switch_rquest(
     else:
         if current_count > total_count:
             raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"total count can't be smaller than available items count",
-        )
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"total count can't be smaller than available items count",
+            )
         new_count = current_count
-    
+
     await mongo_db.edit_inventory_item_by_id(item_id, inventory_edit_object, new_count)
-    
+
     return {"redirect_url": "/master/update_inventory"}
+
 
 @router.post("/master/delete_item_from_inventory")
 async def approve_switch_rquest(
-    request: Request, delete_object: InventoryDelteItem, mongo_db: MongoDB = Depends(get_mongo_db)
+    request: Request,
+    delete_object: InventoryDelteItem,
+    mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     item_id = ObjectId(delete_object.item_id)
 
     involved_singings = await mongo_db.get_involved_item_in_signings(item_id)
-    involved_pending_singings = await mongo_db.get_involved_item_in_pending_signings(item_id)
+    involved_pending_singings = await mongo_db.get_involved_item_in_pending_signings(
+        item_id
+    )
 
     if involved_singings:
-         raise HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This item can't be deleted. it has open signings",
         )
-    
+
     if involved_pending_singings:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This item can't be deleted. it has open pending signings",
         )
 
-    log_document = await create_delete_item_log_document(mongo_db, item_id, user.personal_id)
+    log_document = await create_delete_item_log_document(
+        mongo_db, item_id, user.personal_id
+    )
     logger.info(f"log documrnt: {log_document ,type(log_document)}")
     await mongo_db.delete_item_from_inventory(item_id)
     await mongo_db.add_item_to_logs(log_document)
-    
+
     return {"redirect_url": "/master/update_inventory"}
+
 
 @router.post("/master/add_item_to_inventory")
 async def add_item_to_inventory(
@@ -410,17 +469,119 @@ async def add_item_to_inventory(
         "name": item_object.name,
         "category": item_object.category,
         "count": item_object.total_count,
-        "total_count":  item_object.total_count,
+        "total_count": item_object.total_count,
         "color": item_object.color,
         "palga": item_object.palga,
         "mami_serial": item_object.mami_serial,
         "manufacture_mkt": item_object.manufacture_mkt,
         "katzi_mkt": item_object.katzi_mkt,
         "serial_no": item_object.serial_no,
-        "description": item_object.description
+        "description": item_object.description,
     }
     print("here", item_dict)
 
     await mongo_db.add_item_to_inventory(item_dict)
-    
+
     return {"redirect_url": "/master/update_inventory"}
+
+
+@router.post("/master/new_kit")
+async def new_kit(
+    request: Request, kit_data: NewKitLock, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    kit_name = kit_data.kit_name
+    kit_palga = kit_data.palga
+    exist_kit_name = await mongo_db.involved_kit_by_name(kit_name)
+    if exist_kit_name:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This kit name is already taken. choose different one.",
+        )
+
+    session = request.session
+    session["new_kit_name"] = kit_name
+    session["new_kit_palga"] = kit_palga
+
+    return {"redirect_url": "/master/new_kit_items"}
+
+
+@router.post("/master/add_items_to_kit")
+async def new_signing_access(
+    request: Request,
+    new_kit_data: NewKitItems,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    try:
+        user: User = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    session = request.session
+    kit_name = session.get("new_kit_name", None)
+    kit_palga = session.get("new_kit_palga", None)
+
+    kit_id = await mongo_db.insert_new_kit({"name": kit_name})
+
+    selected_kit_items = new_kit_data.selected_items
+    kit_description = new_kit_data.kit_descrition
+
+    for selected_item in selected_kit_items:
+        item_id = ObjectId(selected_item.item_id)
+        item_quantity = int(selected_item.quantity)
+        item = await mongo_db.get_inventory_item_by_object_id(item_id)
+        if item.get("kit_id"):
+            print("has kit id", item.get("kit_id"))
+            continue
+
+        await mongo_db.inventory_decrease_count_by_quantity(item_id, item_quantity)
+
+        kit_item = {"kit_id": kit_id, "item_id": item_id, "quantity": item_quantity}
+        await mongo_db.add_doc_to_kits_items(kit_item)
+
+    item_dict = {
+        "name": kit_name,
+        "category": "kit",
+        "count": 1,
+        "total_count": 1,
+        "color": "",
+        "palga": kit_palga,
+        "mami_serial": "",
+        "manufacture_mkt": "",
+        "katzi_mkt": "",
+        "serial_no": "",
+        "description": kit_description,
+        "kit_id": kit_id,
+    }
+
+    await mongo_db.add_item_to_inventory(item_dict)
+
+    return {"redirect_url": "/master/kits"}
+
+
+@router.post("/master/kit_content")
+async def kit_content(kit_data: KitContent):
+    redirect_url = f"/master/kit_content/{kit_data.kit_id}"
+
+    return {"redirect_url": redirect_url}
+
+
+@router.post("/master/kit_remove_items")
+async def kit_remove_items(kit_data: KitContent):
+    redirect_url = f"/master/kit_remove_items/{kit_data.kit_id}"
+
+    return {"redirect_url": redirect_url}
+
+
+@router.post("/master/remove_kit_item")
+async def remove_signings(
+    remove_data: RemoveKitItemData, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+
+    for remove_kit_item in remove_data.selected_items:
+        kit_item_id = ObjectId(remove_kit_item.kit_item_id)
+        quantity = int(remove_kit_item.quantity)
+        kit_item_object = await mongo_db.get_kit_item_object_by_id(kit_item_id)
+        inventory_item_id = kit_item_object.get("item_id")
+
+        await mongo_db.remove_kit_item(kit_item_id, quantity)
+        await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)

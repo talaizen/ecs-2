@@ -1,0 +1,38 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_remove_signing.css">
+{% endblock %}
+
+{% block content %}
+<input type="hidden" id="kitId" value="{{ kit_id }}">
+<div class="container">
+    <h2>Remove Items from Kit: <b>{{ kit_name }}</b></h2>
+    <form id="itemsForm">
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>checkbox</th>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>quantity</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>item description</th>
+                    <th>remove</th>
+                    <!-- Add more table headers according to your MongoDB collection's schema -->
+                </tr>
+            </thead>
+        </table>
+        <button type="submit" id="submitItems">Submit</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_kit_remove_items.js"></script>
+{% endblock %}
