@@ -28,6 +28,7 @@ class MongoDB:
     LOGS_COLLECTION = "logs"
     SWITCH_REQUESTS_COLLECTION = "switch_requests"
     KITS_ITEMS_COLLECTION = "kits_items"
+    AMPLIFIER_TRACKING_COLLECTION = "amplifier_tracking"
 
 
     def __init__(self, db_url: str, db_name: str) -> None:
@@ -130,6 +131,16 @@ class MongoDB:
             Collection: The MongoDB collection for client users.
         """
         return self.db[self.KITS_ITEMS_COLLECTION]
+    
+    @property
+    def amplifier_tracking_collection(self):
+        """
+        Provides access to the client users collection in the database.
+
+        Returns:
+            Collection: The MongoDB collection for client users.
+        """
+        return self.db[self.AMPLIFIER_TRACKING_COLLECTION]
     # --------------------------------------  master users collection  --------------------------------------
     async def is_master_password(self, password: str) -> bool:
         """
@@ -510,6 +521,28 @@ class MongoDB:
             await self.kits_items_collection.update_one({"_id": kit_item_id}, {"$inc": {"quantity": -quantity}})
         else:
             raise ValueError("invalid signing id or quantity")
+        
+    # --------------------------------------  amplifier tracking collection  ----------------------------------------
+
+    async def add_doc_to_amplifier_tracking(self, document: dict):
+        existing_document = await self.amplifier_tracking_collection.find_one({"item_id": document.get("item_id"), "test_type": document.get("test_type")})
+        if existing_document:
+            raise ValueError("an amplifier tracking with this item and test type already exist")
+        await self.amplifier_tracking_collection.insert_one(document)
+
+    async def get_amplifier_tracking_data(self):
+        return self.amplifier_tracking_collection.find()
+
+    async def update_amplifier_results(self, object_id: ObjectId, results: str):
+        date = datetime.utcnow()
+        await self.amplifier_tracking_collection.update_one({"_id": object_id}, {"$set": {"results": results, "last_updated": date}})
+
+    async def update_amplifier_interval(self, object_id: ObjectId, interval: int):
+        await self.amplifier_tracking_collection.update_one({"_id": object_id}, {"$set": {"days_interval": interval}})
+
+    async def delete_amplifier_tracking(self, object_id: ObjectId):
+        await self.amplifier_tracking_collection.delete_one({"_id": object_id})
+
 
     # --------------------------------------  close connection  --------------------------------------
     def close_session(self):

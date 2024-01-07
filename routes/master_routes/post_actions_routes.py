@@ -1,5 +1,6 @@
 import logging
 from bson import ObjectId
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request, status, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -27,8 +28,12 @@ from utils.pydantic_forms import (
     NewKitItems,
     KitContent,
     RemoveKitItemData,
-    ExistingKitAddItems
-)
+    ExistingKitAddItems,
+    AddAmplifierTracking,
+    UpdateAmplifierResults,
+    UpdateAmplifierInterval,
+    DeleteAmplifierTracking
+    )
 from utils.helpers import (
     get_current_master_user,
     create_new_signing_document,
@@ -391,15 +396,9 @@ async def delete_client_user(
 
 @router.post("/master/update_inventory")
 async def approve_switch_rquest(
-    request: Request,
     inventory_edit_object: InventoryCollectionItemUpdates,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-    try:
-        user: User = await get_current_master_user(request, mongo_db)
-    except (ValueError, HTTPException):
-        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-
     item_id = ObjectId(inventory_edit_object.item_id)
     total_count = inventory_edit_object.total_count
 
@@ -635,3 +634,54 @@ async def delete_kit(kit_data: KitContent, mongo_db: MongoDB = Depends(get_mongo
 
 
     return {"redirect_url": "/master/kits"}
+
+@router.post("/master/add_amplifier_tracking")
+async def add_amplifier_tracking(
+    amplifier_data: AddAmplifierTracking,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    item_id = ObjectId(amplifier_data.item_id)
+    amplifier_document = {
+        "item_id": item_id,
+        "test_type": (amplifier_data.test_type).strip().upper(),
+        "days_interval": amplifier_data.days_interval,
+        "last_updated": datetime.utcnow(), 
+        "results": "Hasn't been checked yet"
+    }
+    try:
+        await mongo_db.add_doc_to_amplifier_tracking(amplifier_document)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
+
+    return {"redirect_url": "/master/amplifier_status"}
+
+
+@router.post("/master/update_amplifier_results")
+async def update_amplifier_results(
+    amplifier_data: UpdateAmplifierResults,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    await mongo_db.update_amplifier_results(ObjectId(amplifier_data.object_id), amplifier_data.results)
+
+    return {"redirect_url": "/master/amplifier_status"}
+
+@router.post("/master/update_amplifier_interval")
+async def update_amplifier_interval(
+    amplifier_data: UpdateAmplifierInterval,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    await mongo_db.update_amplifier_interval(ObjectId(amplifier_data.object_id), amplifier_data.interval)
+
+    return {"redirect_url": "/master/amplifier_status"}
+
+@router.post("/master/delete_amplifier_tracking")
+async def delete_amplifier_tracking(
+    amplifier_data: DeleteAmplifierTracking,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+    await mongo_db.delete_amplifier_tracking(ObjectId(amplifier_data.object_id))
+
+    return {"redirect_url": "/master/amplifier_status"}

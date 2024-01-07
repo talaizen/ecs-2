@@ -1,0 +1,80 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_amplifier_selection.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Inventory Amplifier Selection</h2>
+    <table id="collectionTable" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>category</th>
+                <th>count</th>
+                <th>color</th>
+                <th>palga</th>
+                <th>mami_serial</th>
+                <th>manufacture_mkt</th>
+                <th>katzi_mkt</th>
+                <th>serial_no</th>
+                <th>description</th>
+                <th>select</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<div id="amplifierModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Add Amplifier Tracking</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form id="amplifierForm">
+
+                    <p id="amplifierContent"></p>
+
+                    <!-- Number Input for Number of Days -->
+                    <div class="form-group">
+                        <label for="numberOfDays">Tests Days Interval</label>
+                        <input type="number" class="form-control" id="numberOfDays" min="1" value=1>
+                    </div>
+
+                    <!-- Text Input for Test Type -->
+                    <div class="form-group">
+                        <label for="testType">Test Type</label>
+                        <input type="text" class="form-control" id="testType">
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Sumbit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_amplifier_selection.js"></script>
+{% endblock %}

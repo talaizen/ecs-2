@@ -261,3 +261,31 @@ async def kit_content(
         "/master_user/master_kit_add_items.html",
         {"request": request, "username": user.full_name, "kit_name": kit_object.get("name"), "kit_id": kit_id, "kit_description": kit_description}
     )
+
+@router.get("/master/amplifier_selection", response_class=HTMLResponse)
+async def amplifier_selection(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_amplifier_selection.html",
+        {"request": request, "username": user.full_name}
+    )
+
+@router.get("/master/amplifier_status", response_class=HTMLResponse)
+async def amplifier_status(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_amplifier_status.html",
+        {"request": request, "username": user.full_name}
+    )

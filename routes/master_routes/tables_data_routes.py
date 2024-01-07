@@ -20,7 +20,8 @@ from utils.pydantic_forms import (
     UpdateClientUserCollectionItem,
     KitsCollectionItem,
     KitContentCollectionItem,
-    KitRemoveItemsCollectionItem
+    KitRemoveItemsCollectionItem,
+    AmplifierStatusItem
 )
 
 
@@ -375,4 +376,26 @@ async def get_kit_remove_item_data(kit_id: str, mongo_db: MongoDB = Depends(get_
             )
         )
                 
+    return data
+
+@router.get("/collections-data/amplifier_tracking")
+async def amplifier_tracking_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_amplifier_tracking_data():
+        item = await mongo_db.get_inventory_item_by_object_id(ObjectId(document.get("item_id")))
+        data.append(
+            AmplifierStatusItem(
+                object_id=str(document.get("_id")),
+                name=item.get("name"),
+                category=item.get("category"),
+                color=item.get("color"),
+                palga=item.get("palga"),
+                mami_serial=item.get("mami_serial"),
+                description=item.get("description"),
+                test_type=document.get("test_type"),
+                interval=document.get("days_interval"),
+                results=document.get("results"),
+                last_updated=document.get("last_updated").strftime("%Y-%m-%d %H:%M")
+            )
+        )
     return data

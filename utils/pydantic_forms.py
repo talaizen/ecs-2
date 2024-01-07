@@ -452,3 +452,32 @@ class RemoveKitItemData(BaseModel):
 class ExistingKitAddItems(BaseModel):
     kit_id: str
     selected_items: List[KitSelectedItem]
+
+class AddAmplifierTracking(BaseModel):
+    item_id: str
+    days_interval: int
+    test_type: str
+
+class AmplifierStatusItem(BaseModel):
+    object_id: str
+    name: str
+    category: str
+    color: str
+    palga: str
+    mami_serial: str
+    description: str
+    test_type: str
+    interval: int
+    results: str
+    last_updated: str
+
+class UpdateAmplifierResults(BaseModel):
+    object_id: str
+    results: str
+
+class UpdateAmplifierInterval(BaseModel):
+    object_id: str
+    interval: int
+
+class DeleteAmplifierTracking(BaseModel):
+    object_id: str
