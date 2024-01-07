@@ -1,0 +1,45 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/master_styling/master_new_signing.css">
+{% endblock %}
+
+{% block content %}
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
+<div class="container">
+    <p>Choose items to add to kit: <b>{{kit_name}} - {{ kit_description }}</b></p>
+    <h2>Inventory</h2>
+    <input type="hidden" id="kitId" value="{{ kit_id }}">
+    <form id="itemsForm">
+        <table id="collectionTable" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>checkbox</th>
+                    <th>name</th>
+                    <th>category</th>
+                    <th>count</th>
+                    <th>color</th>
+                    <th>palga</th>
+                    <th>mami_serial</th>
+                    <th>manufacture_mkt</th>
+                    <th>katzi_mkt</th>
+                    <th>serial_no</th>
+                    <th>description</th>
+                    <th>quantity</th>
+                    <!-- Add more table headers according to your MongoDB collection's schema -->
+                </tr>
+            </thead>
+        </table>
+        <button type="submit" id="submitItems">Submit</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_kit_add_items.js"></script>
+{% endblock %}

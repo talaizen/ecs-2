@@ -27,6 +27,7 @@ from utils.pydantic_forms import (
     NewKitItems,
     KitContent,
     RemoveKitItemData,
+    ExistingKitAddItems
 )
 from utils.helpers import (
     get_current_master_user,
@@ -571,6 +572,12 @@ async def kit_remove_items(kit_data: KitContent):
 
     return {"redirect_url": redirect_url}
 
+@router.post("/master/kit_add_items")
+async def kit_add_items(kit_data: KitContent):
+    redirect_url = f"/master/kit_add_items/{kit_data.kit_id}"
+
+    return {"redirect_url": redirect_url}
+
 
 @router.post("/master/remove_kit_item")
 async def remove_signings(
@@ -585,3 +592,46 @@ async def remove_signings(
 
         await mongo_db.remove_kit_item(kit_item_id, quantity)
         await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)
+
+@router.post("/master/add_items_to_existing_kit")
+async def add_items_to_kit(
+    existing_kit_data: ExistingKitAddItems,
+    mongo_db: MongoDB = Depends(get_mongo_db),
+):
+
+    kit_id = ObjectId(existing_kit_data.kit_id)
+
+    selected_kit_items = existing_kit_data.selected_items
+
+    for selected_item in selected_kit_items:
+        item_id = ObjectId(selected_item.item_id)
+        item_quantity = int(selected_item.quantity)
+        item = await mongo_db.get_inventory_item_by_object_id(item_id)
+        if item.get("kit_id"):
+            print("has kit id", item.get("kit_id"))
+            continue
+
+        await mongo_db.inventory_decrease_count_by_quantity(item_id, item_quantity)
+
+        kit_item = {"kit_id": kit_id, "item_id": item_id, "quantity": item_quantity}
+        await mongo_db.add_doc_to_kits_items(kit_item)
+    
+    redirect_url = f"/master/kit_content/{kit_id}"
+
+    return {"redirect_url": redirect_url}
+
+@router.post("/master/delete_kit")
+async def delete_kit(kit_data: KitContent, mongo_db: MongoDB = Depends(get_mongo_db)):
+    kit_id = ObjectId(kit_data.kit_id)
+
+    involved_kit_items = await mongo_db.involved_kit_items(kit_id)
+    if involved_kit_items:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This kit has items assigned to it, can't be deleted.",
+        )
+    await mongo_db.delete_kit(kit_id)
+    await mongo_db.delete_kit_from_inventory(kit_id)
+
+
+    return {"redirect_url": "/master/kits"}

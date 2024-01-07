@@ -243,3 +243,21 @@ async def kit_content(
         "/master_user/master_kit_remove_items.html",
         {"request": request, "username": user.full_name, "kit_name": kit_object.get("name"), "kit_id": kit_id, "kit_description": kit_description}
     )
+
+@router.get("/master/kit_add_items/{kit_id}", response_class=HTMLResponse)
+async def kit_content(
+    kit_id: str, request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+    kit_object_id = ObjectId(kit_id)
+    kit_object = await mongo_db.get_kit_by_id(kit_object_id)
+    kit_description = await mongo_db.get_kit_description_from_inventory(kit_object_id)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_kit_add_items.html",
+        {"request": request, "username": user.full_name, "kit_name": kit_object.get("name"), "kit_id": kit_id, "kit_description": kit_description}
+    )

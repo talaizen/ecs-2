@@ -449,3 +449,6 @@ class RemoveKitItemSelectedItem(BaseModel):
 class RemoveKitItemData(BaseModel):
     selected_items: List[RemoveKitItemSelectedItem]
 
+class ExistingKitAddItems(BaseModel):
+    kit_id: str
+    selected_items: List[KitSelectedItem]

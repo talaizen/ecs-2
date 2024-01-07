@@ -347,6 +347,9 @@ class MongoDB:
         if document:
             return document.get("description")
     
+    async def delete_kit_from_inventory(self, kit_id: ObjectId):
+        await self.inventory_collection.delete_one({"kit_id": kit_id})
+    
 
     # --------------------------------------  pending signings collection  --------------------------------------
     async def add_item_to_pending_signings(self, document: dict):
@@ -473,11 +476,25 @@ class MongoDB:
     async def get_kit_by_id(self, kit_id: ObjectId):
         return await self.kits_collection.find_one({"_id": kit_id})
     
+    async def delete_kit(self, kit_id: ObjectId):
+        await self.kits_collection.delete_one({"_id": kit_id})
+    
     # --------------------------------------  kit items collection  ----------------------------------------
 
     async def add_doc_to_kits_items(self, document: dict):
-        result = await self.kits_items_collection.insert_one(document)
-        return result.inserted_id
+        kit_id = document.get("kit_id")
+        item_id =  document.get("item_id")
+        quantity = document.get("quantity")
+        existing_item = await self.kits_items_collection.find_one({"kit_id": kit_id, "item_id": item_id})
+        if existing_item:
+            await self.kits_items_collection.update_one({"kit_id": kit_id, "item_id": item_id}, {"$inc": {"quantity": quantity}})
+            return existing_item.get("_id")
+        else:
+            result = await self.kits_items_collection.insert_one(document)
+            return result.inserted_id
+    
+    async def involved_kit_items(self, kit_id: ObjectId):
+        return await self.kits_items_collection.find_one({"kit_id": kit_id})
     
     async def get_kit_items_by_id(self, kit_id: ObjectId):
         return self.kits_items_collection.find({"kit_id": kit_id})

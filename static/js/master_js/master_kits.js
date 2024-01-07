@@ -23,6 +23,43 @@ $(function() {
     });
 });
 
+$(document).on('click', '.delete-btn', async function() {
+    let kitId = $(this).data('object-id');
+    try {
+        const response = await fetch('/master/delete_kit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({kit_id: kitId}),
+        });
+        console.log("this is response: ", response)
+        handleResponse(response);
+    } catch (error) {
+        console.error('Error creating master user:', error);
+        showFailureAlert('An unexpected error occurred.');
+    }
+});
+
+$(document).on('click', '.add-btn', async function() {
+    let kitId = $(this).data('object-id');
+    console.log("ADD", kitId);
+    try {
+        const response = await fetch('/master/kit_add_items', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({kit_id: kitId}),
+        });
+        console.log("this is response: ", response)
+        handleResponse(response);
+    } catch (error) {
+        console.error('Error creating master user:', error);
+        showFailureAlert('An unexpected error occurred.');
+    }
+});
+
 $(document).on('click', '.remove-btn', async function() {
     let kitId = $(this).data('object-id');
     console.log(kitId);
@@ -99,20 +136,3 @@ function showFailureAlert(message) {
 function closeAlert() {
 document.getElementById('alert-container').style.display = 'none';
 }
-
-// $('#newKitBtn').on('click', async function(){
-//     try {
-//         const response = await fetch('/master/add_items_to_pending_signings', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(selectedItems),
-//         });
-//         console.log("this is response: ", response)
-//         handleResponse(response);
-//     } catch (error) {
-//         console.error('Error creating master user:', error);
-//         showFailureAlert('An unexpected error occurred.');
-//     }
-// })
