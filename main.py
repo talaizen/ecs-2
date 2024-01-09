@@ -52,5 +52,3 @@ app.include_router(client_tables_routes)
 app.include_router(client_tables_data_routes)
 app.include_router(client_get_actions_routes)
 app.include_router(client_post_actions_routes)
-
-
