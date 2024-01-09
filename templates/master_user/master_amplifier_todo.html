@@ -1,0 +1,32 @@
+{% extends "base/master_base.html" %}
+
+{% block added_styles %}
+<link rel="stylesheet" href="/static/css/shared_styling/inventory.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Amplifiers Tracking TODO</h2>
+    <table id="collectionTable" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>category</th>
+                <th>color</th>
+                <th>palga</th>
+                <th>mami_serial</th>
+                <th>description</th>
+                <th>test type</th>
+                <th>interval(days)</th>
+                <th>results</th>
+                <th>last updated</th>
+                <th>days passed</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+{% endblock %}
+
+{% block added_scripts %}
+<script src="/static/js/master_js/master_amplifier_todo.js"></script>
+{% endblock %}

@@ -481,3 +481,16 @@ class UpdateAmplifierInterval(BaseModel):
 
 class DeleteAmplifierTracking(BaseModel):
     object_id: str
+
+class AmplifierTODOItem(BaseModel):
+    name: str
+    category: str
+    color: str
+    palga: str
+    mami_serial: str
+    description: str
+    test_type: str
+    interval: int
+    results: str
+    last_updated: str
+    days_passed: int

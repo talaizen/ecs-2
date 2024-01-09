@@ -289,3 +289,17 @@ async def amplifier_status(
         "/master_user/master_amplifier_status.html",
         {"request": request, "username": user.full_name}
     )
+
+@router.get("/master/amplifier_tracking_todo", response_class=HTMLResponse)
+async def amplifier_tracking_todo(
+    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
+):
+    try:
+        user = await get_current_master_user(request, mongo_db)
+    except (ValueError, HTTPException):
+        return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    
+    return templates.TemplateResponse(
+        "/master_user/master_amplifier_todo.html",
+        {"request": request, "username": user.full_name}
+    )

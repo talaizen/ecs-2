@@ -1,5 +1,6 @@
 import logging
 from bson import ObjectId
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
@@ -21,7 +22,8 @@ from utils.pydantic_forms import (
     KitsCollectionItem,
     KitContentCollectionItem,
     KitRemoveItemsCollectionItem,
-    AmplifierStatusItem
+    AmplifierStatusItem,
+    AmplifierTODOItem
 )
 
 
@@ -396,6 +398,35 @@ async def amplifier_tracking_data(mongo_db: MongoDB = Depends(get_mongo_db)):
                 interval=document.get("days_interval"),
                 results=document.get("results"),
                 last_updated=document.get("last_updated").strftime("%Y-%m-%d %H:%M")
+            )
+        )
+    return data
+
+@router.get("/collections-data/amplifier_tracking_todo")
+async def amplifier_tracking_todo_data(mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    async for document in await mongo_db.get_amplifier_tracking_data():
+        last_updated = document.get("last_updated")
+        interval = document.get("days_interval")
+        delta = (datetime.utcnow() - last_updated).days
+        logger.info(f'{delta, interval, type(delta)}')
+        if not delta >= interval:
+            continue
+        
+        item = await mongo_db.get_inventory_item_by_object_id(ObjectId(document.get("item_id")))
+        data.append(
+            AmplifierTODOItem(
+                name=item.get("name"),
+                category=item.get("category"),
+                color=item.get("color"),
+                palga=item.get("palga"),
+                mami_serial=item.get("mami_serial"),
+                description=item.get("description"),
+                test_type=document.get("test_type"),
+                interval=interval,
+                results=document.get("results"),
+                last_updated=document.get("last_updated").strftime("%Y-%m-%d %H:%M"),
+                days_passed=delta
             )
         )
     return data
