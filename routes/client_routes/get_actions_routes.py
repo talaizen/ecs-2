@@ -17,6 +17,7 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
 
+
 @router.get("/client/verify-switch-signing-access")
 async def client_switch_signing_verification(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
@@ -30,6 +31,7 @@ async def client_switch_signing_verification(
         {"request": request, "username": user.full_name},
     )
 
+
 @router.get("/client/switch_signing", response_class=HTMLResponse)
 async def client_switch_signing(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
@@ -42,20 +44,22 @@ async def client_switch_signing(
     session = request.session
     new_personal_id = session.get("client_switch_new_personal_id", None)
 
-    old_signer: ClientUser = await mongo_db.get_client_by_personal_id(
-        user.personal_id
-    )
+    old_signer: ClientUser = await mongo_db.get_client_by_personal_id(user.personal_id)
 
-    new_signer: ClientUser = await mongo_db.get_client_by_personal_id(
-        new_personal_id
-    )
+    new_signer: ClientUser = await mongo_db.get_client_by_personal_id(new_personal_id)
 
     if old_signer is None or new_signer is None:
         return RedirectResponse(
-            url="/client/verify-switch-signing-access", status_code=status.HTTP_302_FOUND
+            url="/client/verify-switch-signing-access",
+            status_code=status.HTTP_302_FOUND,
         )
 
     return templates.TemplateResponse(
         "/client_user/client_switch_signing.html",
-        {"request": request, "username": user.full_name, "old_signer": old_signer, "new_signer": new_signer},
+        {
+            "request": request,
+            "username": user.full_name,
+            "old_signer": old_signer,
+            "new_signer": new_signer,
+        },
     )

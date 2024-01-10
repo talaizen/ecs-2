@@ -18,31 +18,20 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/client/inventory", response_class=HTMLResponse)
-async def client_inventory(
-    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
-):
-    """
-    Route to serve the master landing page.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the master landing page content.
-    """
+async def client_inventory(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     try:
         user = await get_current_client_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
     return templates.TemplateResponse(
         "/client_user/client_inventory.html",
         {"request": request, "username": user.full_name},
     )
 
+
 @router.get("/client/signings", response_class=HTMLResponse)
-async def master_pending_signings(
-    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
-):
+async def client_signings(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     try:
         user = await get_current_client_user(request, mongo_db)
     except (ValueError, HTTPException):
@@ -52,6 +41,7 @@ async def master_pending_signings(
         "/client_user/client_signings.html",
         {"request": request, "username": user.full_name},
     )
+
 
 @router.get("/client/switch_requests", response_class=HTMLResponse)
 async def client_switch_requests(
@@ -64,8 +54,9 @@ async def client_switch_requests(
 
     return templates.TemplateResponse(
         "/client_user/client_switch_requests.html",
-        {"request": request, "username": user.full_name}
+        {"request": request, "username": user.full_name},
     )
+
 
 @router.get("/client/approve_switch_requests", response_class=HTMLResponse)
 async def client_approve_switch_requests(
@@ -78,5 +69,5 @@ async def client_approve_switch_requests(
 
     return templates.TemplateResponse(
         "/client_user/client_approve_switch.html",
-        {"request": request, "username": user.full_name}
+        {"request": request, "username": user.full_name},
     )

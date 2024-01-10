@@ -32,8 +32,8 @@ from utils.pydantic_forms import (
     AddAmplifierTracking,
     UpdateAmplifierResults,
     UpdateAmplifierInterval,
-    DeleteAmplifierTracking
-    )
+    DeleteAmplifierTracking,
+)
 from utils.helpers import (
     get_current_master_user,
     create_new_signing_document,
@@ -85,12 +85,11 @@ async def new_signing_access(
 
 
 @router.post("/master/add_items_to_pending_signings")
-async def new_signing_access(
+async def add_items_to_pending_signings(
     request: Request,
     new_signing_data: NewSigningData,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-    logger.info(f"this is selected items: {new_signing_data}")
     try:
         user: User = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
@@ -130,23 +129,21 @@ async def delete_item_from_pending_signings(
     deleted_object: PendingSigningObjectId, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
     object_id = ObjectId(deleted_object.pending_signing_id)
-    logger.info(f"in delete pen sign: {object_id}")
     pending_signing = await mongo_db.get_pending_signing_by_object_id(object_id)
     await mongo_db.inventory_increase_count_quantity(
         pending_signing.get("item_id"), pending_signing.get("quantity")
     )
     await mongo_db.delete_pending_signing_by_object_id(object_id)
-    print("sending redirection pending")
 
     return {"redirect_url": "/master/pending_signings"}
 
 
 @router.post("/master/add_items_to_signings")
-async def new_signing_access(
+async def add_items_to_signings(
     new_signing_data: AddSigningData, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
     selected_pending_items = new_signing_data.selected_items
-    logger.info(f"selected add to signing: {selected_pending_items}")
+
     for pending_signing_item in selected_pending_items:
         pending_signing_object_id = ObjectId(pending_signing_item.pending_signing_id)
         pending_signing = await mongo_db.get_pending_signing_by_object_id(
@@ -167,7 +164,6 @@ async def new_signing_access(
         await mongo_db.add_item_to_signings(new_signing_document)
         await mongo_db.delete_pending_signing_by_object_id(pending_signing_object_id)
         await mongo_db.add_item_to_logs(log_document)
-    print(" sending redirection signings")
 
     return {"redirect_url": "/master/signings"}
 
@@ -203,7 +199,7 @@ async def remove_signings(
 
 
 @router.post("/master/verify-switch-signing-access")
-async def new_signing_access(
+async def switch_signing_access(
     request: Request,
     access_data: SwitchSigningAccessForm,
     mongo_db: MongoDB = Depends(get_mongo_db),
@@ -244,7 +240,7 @@ async def new_signing_access(
 
 
 @router.post("/master/switch_signing")
-async def remove_signings(
+async def switch_signing(
     request: Request,
     switch_signing_data: SwitchSigningData,
     mongo_db: MongoDB = Depends(get_mongo_db),
@@ -296,6 +292,7 @@ async def reject_switch_rquest(
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
     rejected_requests = rejected_rquests_object.selected_requests
+
     for rejected_request in rejected_requests:
         switch_request_id = ObjectId(rejected_request.switch_request_id)
         await mongo_db.reject_switch_request_by_id(switch_request_id)
@@ -315,6 +312,7 @@ async def approve_switch_rquest(
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     approved_requests = approved_rquests_object.selected_requests
+
     for approved_request in approved_requests:
         switch_request_id = ObjectId(approved_request.switch_request_id)
         request_item = await mongo_db.get_switch_request_by_id(switch_request_id)
@@ -364,7 +362,7 @@ async def delete_client_user(
     involved_signings = await mongo_db.involved_signing_by_personal_id(
         client_personal_id
     )
-    logger.info(f"this is involved: {involved_signings}")
+
     if involved_signings:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -395,7 +393,7 @@ async def delete_client_user(
 
 
 @router.post("/master/update_inventory")
-async def approve_switch_rquest(
+async def update_inventory(
     inventory_edit_object: InventoryCollectionItemUpdates,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
@@ -408,12 +406,15 @@ async def approve_switch_rquest(
     if total_count >= current_total_count:
         new_count = current_count + (total_count - current_total_count)
     else:
-        if current_count > total_count:
+        if current_count == current_total_count:
+            new_count = total_count
+        elif current_count > total_count:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"total count can't be smaller than available items count",
             )
-        new_count = current_count
+        else:
+            new_count = current_count
 
     await mongo_db.edit_inventory_item_by_id(item_id, inventory_edit_object, new_count)
 
@@ -421,7 +422,7 @@ async def approve_switch_rquest(
 
 
 @router.post("/master/delete_item_from_inventory")
-async def approve_switch_rquest(
+async def delete_item_from_inventory(
     request: Request,
     delete_object: InventoryDelteItem,
     mongo_db: MongoDB = Depends(get_mongo_db),
@@ -464,7 +465,6 @@ async def approve_switch_rquest(
 async def add_item_to_inventory(
     item_object: InventoryAddItem, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    print("I'm here")
     item_dict = {
         "name": item_object.name,
         "category": item_object.category,
@@ -478,7 +478,6 @@ async def add_item_to_inventory(
         "serial_no": item_object.serial_no,
         "description": item_object.description,
     }
-    print("here", item_dict)
 
     await mongo_db.add_item_to_inventory(item_dict)
 
@@ -506,7 +505,7 @@ async def new_kit(
 
 
 @router.post("/master/add_items_to_kit")
-async def new_signing_access(
+async def add_items_to_kit(
     request: Request,
     new_kit_data: NewKitItems,
     mongo_db: MongoDB = Depends(get_mongo_db),
@@ -571,6 +570,7 @@ async def kit_remove_items(kit_data: KitContent):
 
     return {"redirect_url": redirect_url}
 
+
 @router.post("/master/kit_add_items")
 async def kit_add_items(kit_data: KitContent):
     redirect_url = f"/master/kit_add_items/{kit_data.kit_id}"
@@ -579,10 +579,9 @@ async def kit_add_items(kit_data: KitContent):
 
 
 @router.post("/master/remove_kit_item")
-async def remove_signings(
+async def remove_kit_item(
     remove_data: RemoveKitItemData, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-
     for remove_kit_item in remove_data.selected_items:
         kit_item_id = ObjectId(remove_kit_item.kit_item_id)
         quantity = int(remove_kit_item.quantity)
@@ -592,12 +591,12 @@ async def remove_signings(
         await mongo_db.remove_kit_item(kit_item_id, quantity)
         await mongo_db.inventory_increase_count_quantity(inventory_item_id, quantity)
 
+
 @router.post("/master/add_items_to_existing_kit")
 async def add_items_to_kit(
     existing_kit_data: ExistingKitAddItems,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-
     kit_id = ObjectId(existing_kit_data.kit_id)
 
     selected_kit_items = existing_kit_data.selected_items
@@ -607,17 +606,17 @@ async def add_items_to_kit(
         item_quantity = int(selected_item.quantity)
         item = await mongo_db.get_inventory_item_by_object_id(item_id)
         if item.get("kit_id"):
-            print("has kit id", item.get("kit_id"))
             continue
 
         await mongo_db.inventory_decrease_count_by_quantity(item_id, item_quantity)
 
         kit_item = {"kit_id": kit_id, "item_id": item_id, "quantity": item_quantity}
         await mongo_db.add_doc_to_kits_items(kit_item)
-    
+
     redirect_url = f"/master/kit_content/{kit_id}"
 
     return {"redirect_url": redirect_url}
+
 
 @router.post("/master/delete_kit")
 async def delete_kit(kit_data: KitContent, mongo_db: MongoDB = Depends(get_mongo_db)):
@@ -632,8 +631,8 @@ async def delete_kit(kit_data: KitContent, mongo_db: MongoDB = Depends(get_mongo
     await mongo_db.delete_kit(kit_id)
     await mongo_db.delete_kit_from_inventory(kit_id)
 
-
     return {"redirect_url": "/master/kits"}
+
 
 @router.post("/master/add_amplifier_tracking")
 async def add_amplifier_tracking(
@@ -645,8 +644,8 @@ async def add_amplifier_tracking(
         "item_id": item_id,
         "test_type": (amplifier_data.test_type).strip().upper(),
         "days_interval": amplifier_data.days_interval,
-        "last_updated": datetime.utcnow(), 
-        "results": "Hasn't been checked yet"
+        "last_updated": datetime.utcnow(),
+        "results": "Hasn't been checked yet",
     }
     try:
         await mongo_db.add_doc_to_amplifier_tracking(amplifier_document)
@@ -664,18 +663,24 @@ async def update_amplifier_results(
     amplifier_data: UpdateAmplifierResults,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-    await mongo_db.update_amplifier_results(ObjectId(amplifier_data.object_id), amplifier_data.results)
+    await mongo_db.update_amplifier_results(
+        ObjectId(amplifier_data.object_id), amplifier_data.results
+    )
 
     return {"redirect_url": "/master/amplifier_status"}
+
 
 @router.post("/master/update_amplifier_interval")
 async def update_amplifier_interval(
     amplifier_data: UpdateAmplifierInterval,
     mongo_db: MongoDB = Depends(get_mongo_db),
 ):
-    await mongo_db.update_amplifier_interval(ObjectId(amplifier_data.object_id), amplifier_data.interval)
+    await mongo_db.update_amplifier_interval(
+        ObjectId(amplifier_data.object_id), amplifier_data.interval
+    )
 
     return {"redirect_url": "/master/amplifier_status"}
+
 
 @router.post("/master/delete_amplifier_tracking")
 async def delete_amplifier_tracking(

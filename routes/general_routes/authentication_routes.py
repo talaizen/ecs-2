@@ -10,7 +10,7 @@ from utils.pydantic_forms import TokenResponse, LoginForm
 from utils.dependecy_functions import get_mongo_db
 from utils.helpers import authenticate_user, get_landing_page_url, create_access_token
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +21,6 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
 async def login_page(request: Request):
-    """
-    Route to serve the index.html file.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the index.html content.
-    """
-    logger.info("entering index.html")
     return templates.TemplateResponse("index.html", {"request": request})
 
 
@@ -76,7 +66,7 @@ async def login_for_access_token(
         key="access_token",
         value=access_token,
         httponly=True,
-        max_age=3600,
+        max_age=7200,
         samesite="Lax",
     )
     redirect_url = get_landing_page_url(user.type)

@@ -6,8 +6,8 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
 from utils.mongo_db import MongoDB
-from utils.dependecy_functions import get_mongo_db
 from utils.helpers import get_current_master_user
+from utils.dependecy_functions import get_mongo_db
 
 
 logger = logging.getLogger(__name__)
@@ -18,22 +18,12 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/master/inventory", response_class=HTMLResponse)
-async def master_inventory(
-    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
-):
-    """
-    Route to serve the master landing page.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the master landing page content.
-    """
+async def master_inventory(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     try:
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
     return templates.TemplateResponse(
         "/master_user/master_inventory.html",
         {"request": request, "username": user.full_name},
@@ -41,22 +31,12 @@ async def master_inventory(
 
 
 @router.get("/master/client_users", response_class=HTMLResponse)
-async def master_landing_page(
-    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
-):
-    """
-    Route to serve the master landing page.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the master landing page content.
-    """
+async def client_users(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     try:
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
     return templates.TemplateResponse(
         "/master_user/master_clients_table.html",
         {"request": request, "username": user.full_name},
@@ -64,9 +44,7 @@ async def master_landing_page(
 
 
 @router.get("/master/signings", response_class=HTMLResponse)
-async def master_pending_signings(
-    request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
-):
+async def master_signings(request: Request, mongo_db: MongoDB = Depends(get_mongo_db)):
     try:
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
@@ -99,10 +77,12 @@ async def master_logs_page(request: Request, mongo_db: MongoDB = Depends(get_mon
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
     return templates.TemplateResponse(
         "/master_user/master_logs.html",
         {"request": request, "username": user.full_name},
     )
+
 
 @router.get("/master/approve_switch_requests", response_class=HTMLResponse)
 async def master_approve_switch_requests(
@@ -115,5 +95,5 @@ async def master_approve_switch_requests(
 
     return templates.TemplateResponse(
         "/master_user/master_approve_switch.html",
-        {"request": request, "username": user.full_name}
+        {"request": request, "username": user.full_name},
     )

@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.11
 
 # Set environment variables for Python buffering
 ENV PYTHONUNBUFFERED 1

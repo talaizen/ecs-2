@@ -20,15 +20,6 @@ templates = Jinja2Templates(directory="templates")
 async def master_landing_page(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    """
-    Route to serve the master landing page.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the master landing page content.
-    """
     try:
         user = await get_current_master_user(request, mongo_db)
     except (ValueError, HTTPException):
@@ -43,21 +34,12 @@ async def master_landing_page(
 async def client_landing_page(
     request: Request, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    """
-    Route to serve the client landing page.
-
-    Args:
-        request (Request): The incoming request.
-
-    Returns:
-        TemplateResponse: HTML response containing the client landing page content.
-    """
     try:
         user = await get_current_client_user(request, mongo_db)
     except (ValueError, HTTPException):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    
+
     return templates.TemplateResponse(
         "/client_user/client_landing_page.html",
-        {"request": request, "username": user.full_name}
+        {"request": request, "username": user.full_name},
     )

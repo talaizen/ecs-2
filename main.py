@@ -10,8 +10,8 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from routes.general_routes.registration_routes import router as registration_router
-from routes.general_routes.authentication_routes import router as authentication_router
 from routes.general_routes.landing_pages_routes import router as landing_pages_routes
+from routes.general_routes.authentication_routes import router as authentication_router
 
 from routes.master_routes.tables_routes import router as master_tables_routes
 from routes.master_routes.tables_data_routes import router as master_tables_data_routes

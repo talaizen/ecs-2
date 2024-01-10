@@ -17,12 +17,12 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/master_signup", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def master_signup(request: Request):
     return templates.TemplateResponse("master-signup.html", {"request": request})
 
 
 @router.get("/client_signup", response_class=HTMLResponse)
-async def login_page(request: Request):
+async def client_signup(request: Request):
     return templates.TemplateResponse("client-signup.html", {"request": request})
 
 
@@ -30,18 +30,6 @@ async def login_page(request: Request):
 async def create_master_account(
     master_account_data: MasterAccount, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    """
-    Route to create a master account.
-
-    Args:
-        master_account_data (MasterAccount): Master account details.
-        mongo_db (MongoDB): MongoDB instance.
-
-    Raises:
-        HTTPException: If there are validation errors or the personal ID is already in use.
-    """
-    logger.info(f"this is master account data {master_account_data}")
-
     if not await mongo_db.is_master_password(master_account_data.master_password):
         raise HTTPException(status_code=400, detail="master password is incorrect")
 
@@ -65,17 +53,6 @@ async def create_master_account(
 async def create_client_account(
     client_account_data: ClientAccount, mongo_db: MongoDB = Depends(get_mongo_db)
 ):
-    """
-    Route to create a client account.
-
-    Args:
-        client_account_data (ClientAccount): Client account details.
-        mongo_db (MongoDB): MongoDB instance.
-
-    Raises:
-        HTTPException: If there are validation errors or the personal ID is already in use.
-    """
-    logger.info(client_account_data)
     if not await mongo_db.is_master_password(client_account_data.master_password):
         raise HTTPException(status_code=400, detail="master password is incorrect")
 
