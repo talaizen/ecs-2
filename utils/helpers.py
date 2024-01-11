@@ -17,7 +17,7 @@ __all__ = [
     "get_landing_page_url",
     "authenticate_user",
     "create_new_signing_log_document",
-    "create_new_signing_document",
+    "create_new_signing_document"
 ]
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -28,19 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 async def get_user(mongo_db: MongoDB, personal_id: int, password: str) -> User:
-    """
-    Retrieve a user (either master or client) from the database based on personal ID and password.
-
-    Args:
-        mongo_db (MongoDB): The MongoDB connection instance.
-        personal_id (int): The personal ID of the user.
-        password (str): The password of the user.
-
-    Returns:
-        User: A User object if the user is found, else None.
-    """
-    logger.info(f"get user {personal_id, password}")
-
     master_user = await mongo_db.get_master_user(personal_id, password)
     if master_user:
         return User(
@@ -65,17 +52,6 @@ async def get_user(mongo_db: MongoDB, personal_id: int, password: str) -> User:
 
 
 async def authenticate_user(mongo_db: MongoDB, personal_id: int, password: str) -> User:
-    """
-    Authenticate a user against the database.
-
-    Args:
-        mongo_db (MongoDB): The MongoDB connection instance.
-        personal_id (int): The personal ID of the user.
-        password (str): The password of the user.
-
-    Returns:
-        User: A User object if authentication is successful, else False.
-    """
     logger.info(f"authuser {personal_id, password}")
     user = await get_user(mongo_db, personal_id, password)
     if not user:
@@ -85,29 +61,10 @@ async def authenticate_user(mongo_db: MongoDB, personal_id: int, password: str) 
 
 
 def get_landing_page_url(user_type: str) -> str:
-    """
-    Determine the landing page URL based on the user type.
-
-    Args:
-        user_type (str): The type of the user ("master" or "client").
-
-    Returns:
-        str: The URL of the landing page corresponding to the user type.
-    """
     return "/master_landing_page" if user_type == "master" else "/client_landing_page"
 
 
 def create_access_token(data: dict, expires_delta: timedelta or None = None) -> str:
-    """
-    Create a JWT access token with the given data and expiration.
-
-    Args:
-        data (dict): The data to encode in the token.
-        expires_delta (timedelta, optional): The time delta for token expiration. Defaults to 15 minutes.
-
-    Returns:
-        str: The encoded JWT access token.
-    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -120,19 +77,6 @@ def create_access_token(data: dict, expires_delta: timedelta or None = None) -> 
 
 
 async def get_current_user(request: Request, mongo_db: MongoDB) -> User:
-    """
-    Retrieve the current user based on the access token provided in the request.
-
-    Args:
-        request (Request): The request object.
-        mongo_db (MongoDB): The MongoDB connection instance.
-
-    Raises:
-        HTTPException: If the token is missing, invalid, or if no user is found.
-
-    Returns:
-        User: The authenticated User object.
-    """
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -160,19 +104,6 @@ async def get_current_user(request: Request, mongo_db: MongoDB) -> User:
 
 
 async def get_current_master_user(request: Request, mongo_db: MongoDB) -> User:
-    """
-    Retrieve the current user as a master user.
-
-    Args:
-        request (Request): The request object.
-        mongo_db (MongoDB): The MongoDB connection instance.
-
-    Raises:
-        ValueError: If the current user is not a master user.
-
-    Returns:
-        User: The authenticated master User object.
-    """
     user = await get_current_user(request, mongo_db)
     if user.type != "master":
         raise ValueError("this url can be accessed by master users only")
@@ -181,19 +112,6 @@ async def get_current_master_user(request: Request, mongo_db: MongoDB) -> User:
 
 
 async def get_current_client_user(request: Request, mongo_db: MongoDB) -> User:
-    """
-    Retrieve the current user as a client user.
-
-    Args:
-        request (Request): The request object.
-        mongo_db (MongoDB): The MongoDB connection instance.
-
-    Raises:
-        ValueError: If the current user is not a client user.
-
-    Returns:
-        User: The authenticated client User object.
-    """
     user = await get_current_user(request, mongo_db)
     if user.type != "client":
         raise ValueError("this url can be accessed by master users only")
@@ -220,7 +138,6 @@ async def create_new_signing_log_document(
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
-
 async def create_credit_log_document(
     mongo_db: MongoDB,
     master_user_pid: int,
@@ -235,7 +152,6 @@ async def create_credit_log_document(
     description = f'{generate_user_presentation(client_user)} credited {quantity} {item_info.get("name")}({item_info.get("color")}).\n Credited by: {generate_user_presentation(master_user)}.'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
-
 
 async def create_switch_log_document(
     mongo_db: MongoDB,
@@ -254,7 +170,6 @@ async def create_switch_log_document(
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
-
 def create_new_signing_document(
     item_id: ObjectId,
     master_personal_id: int,
@@ -271,9 +186,10 @@ def create_new_signing_document(
         "date": datetime.utcnow(),
     }
 
-
 async def create_delete_item_log_document(
-    mongo_db: MongoDB, item_id: ObjectId, master_user_pid: int
+    mongo_db: MongoDB,
+    item_id: ObjectId,
+    master_user_pid: int
 ) -> dict:
     action = "Delete Inventory Item"
     item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
