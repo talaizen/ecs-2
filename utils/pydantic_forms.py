@@ -187,7 +187,7 @@ class ClientAccount(BaseModel):
     @classmethod
     def capitalize(cls, v: str) -> str:
         return v.capitalize()
-    
+
 
 class InventoryCollectionItem(BaseModel):
     object_id: str
@@ -203,6 +203,7 @@ class InventoryCollectionItem(BaseModel):
     description: str
     max_amount: int
 
+
 class UpdateInventoryCollectionItem(BaseModel):
     object_id: str
     name: str
@@ -216,6 +217,7 @@ class UpdateInventoryCollectionItem(BaseModel):
     serial_no: str
     description: str
     max_amount: int
+
 
 class PendingSigningsCollectionItem(BaseModel):
     object_id: str
@@ -233,6 +235,7 @@ class PendingSigningsCollectionItem(BaseModel):
     issuer: str
     signing_description: str
 
+
 class SigningsCollectionItem(BaseModel):
     name: str
     category: str
@@ -248,6 +251,7 @@ class SigningsCollectionItem(BaseModel):
     issuer: str
     signing_description: str
     date: str
+
 
 class SigningItem(BaseModel):
     signing_id: str
@@ -266,6 +270,7 @@ class SigningItem(BaseModel):
     signing_description: str
     date: str
 
+
 class SwitchRequestItem(BaseModel):
     request_id: str
     name: str
@@ -283,7 +288,8 @@ class SwitchRequestItem(BaseModel):
     new_signer: str
     switch_description: str
     status: str
-    
+
+
 class ClientUserCollectionItem(BaseModel):
     first_name: str
     last_name: str
@@ -291,7 +297,8 @@ class ClientUserCollectionItem(BaseModel):
     email: str
     palga: str
     team: str
-    
+
+
 class UpdateClientUserCollectionItem(BaseModel):
     user_id: str
     first_name: str
@@ -302,19 +309,23 @@ class UpdateClientUserCollectionItem(BaseModel):
     team: str
     password: str
 
+
 class LogCollectionItem(BaseModel):
     action: str
     description: str
     date: str
 
+
 class NewSigningAccessForm(BaseModel):
     signer_personal_id: int
     master_password: str
+
 
 class SwitchSigningAccessForm(BaseModel):
     old_personal_id: str
     new_personal_id: str
     master_password: str
+
 
 class ClientSwitchSigningAccessForm(BaseModel):
     new_personal_id: str
@@ -329,55 +340,70 @@ class ClientUser(BaseModel):
     palga: str
     team: str
 
+
 class MasterUser(BaseModel):
     first_name: str
     last_name: str
     personal_id: int
     email: str
 
+
 class SigningSelectedItem(BaseModel):
     item_id: str
     quantity: str
+
 
 class SwitchSelectedItem(BaseModel):
     signing_id: str
     quantity: str
 
+
 class RemoveSigningSelectedItem(BaseModel):
     signing_id: str
     quantity: str
+
 
 class NewSigningData(BaseModel):
     selected_items: List[SigningSelectedItem]
     signing_descrition: str
 
+
 class RemoveSigningData(BaseModel):
     selected_items: List[RemoveSigningSelectedItem]
+
 
 class PendingSigningObjectId(BaseModel):
     pending_signing_id: str
 
+
 class ClientUserObjectId(BaseModel):
     user_id: str
+
 
 class SwitchRequestObjectId(BaseModel):
     switch_request_id: str
 
+
 class CanceledSwitchRequest(BaseModel):
     canceled_request_id: str
+
 
 class AddSigningData(BaseModel):
     selected_items: List[PendingSigningObjectId]
 
+
 class ApproveSwitchRequestData(BaseModel):
     selected_requests: List[SwitchRequestObjectId]
+
 
 class RejectSwitchRequestData(BaseModel):
     selected_requests: List[SwitchRequestObjectId]
 
+
 class SwitchSigningData(BaseModel):
     selected_items: List[SwitchSelectedItem]
     signing_descrition: str
+
 
 class InventoryCollectionItemUpdates(BaseModel):
     item_id: str
@@ -392,8 +418,10 @@ class InventoryCollectionItemUpdates(BaseModel):
     serial_no: str
     description: str
 
+
 class InventoryDelteItem(BaseModel):
     item_id: str
+
 
 class InventoryAddItem(BaseModel):
     name: str
@@ -407,25 +435,31 @@ class InventoryAddItem(BaseModel):
     serial_no: str
     description: str
 
+
 class NewKitLock(BaseModel):
     kit_name: str
     palga: str
+
 
 class KitSelectedItem(BaseModel):
     item_id: str
     quantity: str
 
+
 class NewKitItems(BaseModel):
     selected_items: List[KitSelectedItem]
     kit_descrition: str
+
 
 class KitsCollectionItem(BaseModel):
     kit_id: str
     kit_name: str
     kit_description: str
 
+
 class KitContent(BaseModel):
     kit_id: str
+
 
 class KitContentCollectionItem(BaseModel):
     name: str
@@ -439,24 +473,30 @@ class KitContentCollectionItem(BaseModel):
     serial_no: str
     item_description: str
 
+
 class KitRemoveItemsCollectionItem(KitContentCollectionItem):
     kit_item_id: str
+
 
 class RemoveKitItemSelectedItem(BaseModel):
     kit_item_id: str
     quantity: str
 
+
 class RemoveKitItemData(BaseModel):
     selected_items: List[RemoveKitItemSelectedItem]
+
 
 class ExistingKitAddItems(BaseModel):
     kit_id: str
     selected_items: List[KitSelectedItem]
 
+
 class AddAmplifierTracking(BaseModel):
     item_id: str
     days_interval: int
     test_type: str
+
 
 class AmplifierStatusItem(BaseModel):
     object_id: str
@@ -471,16 +511,20 @@ class AmplifierStatusItem(BaseModel):
     results: str
     last_updated: str
 
+
 class UpdateAmplifierResults(BaseModel):
     object_id: str
     results: str
+
 
 class UpdateAmplifierInterval(BaseModel):
     object_id: str
     interval: int
 
+
 class DeleteAmplifierTracking(BaseModel):
     object_id: str
+
 
 class AmplifierTODOItem(BaseModel):
     name: str

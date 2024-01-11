@@ -17,7 +17,7 @@ __all__ = [
     "get_landing_page_url",
     "authenticate_user",
     "create_new_signing_log_document",
-    "create_new_signing_document"
+    "create_new_signing_document",
 ]
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -220,6 +220,7 @@ async def create_new_signing_log_document(
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
+
 async def create_credit_log_document(
     mongo_db: MongoDB,
     master_user_pid: int,
@@ -234,6 +235,7 @@ async def create_credit_log_document(
     description = f'{generate_user_presentation(client_user)} credited {quantity} {item_info.get("name")}({item_info.get("color")}).\n Credited by: {generate_user_presentation(master_user)}.'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
+
 
 async def create_switch_log_document(
     mongo_db: MongoDB,
@@ -252,6 +254,7 @@ async def create_switch_log_document(
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
+
 def create_new_signing_document(
     item_id: ObjectId,
     master_personal_id: int,
@@ -268,10 +271,9 @@ def create_new_signing_document(
         "date": datetime.utcnow(),
     }
 
+
 async def create_delete_item_log_document(
-    mongo_db: MongoDB,
-    item_id: ObjectId,
-    master_user_pid: int
+    mongo_db: MongoDB, item_id: ObjectId, master_user_pid: int
 ) -> dict:
     action = "Delete Inventory Item"
     item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
