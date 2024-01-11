@@ -9,15 +9,37 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
       - mongo-data:/data/db
+
   mongo-express:
     image: mongo-express
-    restart: always # fixes MongoNetworkError when mongodb is not ready when mongo-express starts
+    restart: always
     ports:
       - 1234:8081
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=password
       - ME_CONFIG_MONGODB_SERVER=mongodb
+
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URL=mongodb://admin:password@mongodb:27017
+      - DATA_BASE_NAME=ecs
+      - SECRET_KEY=7f4aefaacda0e25168873895a24f3009025bd52eabca0c99083d15b45ece651c
+      - ALGORITHM=HS256
+    networks:
+      - ecs-network
+
+networks:
+  ecs-network:
+    driver: bridge
+
 volumes:
   mongo-data:
     driver: local
