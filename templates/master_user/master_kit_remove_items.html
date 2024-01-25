@@ -6,6 +6,12 @@
 
 {% block content %}
 <input type="hidden" id="kitId" value="{{ kit_id }}">
+<div id="alert-container">
+    <div id="alert-message">
+      <span id="alert-text">Your alert message here!</span>
+      <button id="close-alert" onclick="closeAlert()">x</button>
+    </div>
+</div>
 <div class="container">
     <h2>Remove Items from Kit: <b>{{ kit_name }}</b></h2>
     <form id="itemsForm">

@@ -58,6 +58,10 @@ $('#itemsForm').on('submit', async function(e) {
     e.preventDefault();
 
     const selectedItems = prepareRequestData();
+    if (selectedItems === null){
+        showFailureAlert('detected invalid selected items');
+        return;
+    }
     console.log("sending:", selectedItems)
     try {
         const response = await fetch('/master/add_items_to_existing_kit', {
@@ -80,11 +84,18 @@ function prepareRequestData() {
     let kitId = $('#kitId').val()
     let table = $('#collectionTable').DataTable();
     let selectedItems = [];
+    let shouldStop = false;
 
     // Iterate over all data in the DataTable
     table.rows().every(function() {
         let row = this.node();
         let $row = $(row);
+
+        if ($row.hasClass('invalid-checked')) {
+            console.log('invalid');
+            shouldStop = true;
+            return;
+        }
 
         // Check if the row is valid and checked
         if ($row.hasClass('valid-checked')) {
@@ -93,6 +104,10 @@ function prepareRequestData() {
             selectedItems.push({ item_id: itemId, quantity: quantity });
         }
     });
+
+    if (shouldStop){
+        return null;
+    }
     return {kit_id: kitId, selected_items: selectedItems}
 }
 

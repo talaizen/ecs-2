@@ -52,7 +52,7 @@ function updateResults(data, objectId) {
 
     amplifierParagraph = 
     `
-    Insert here the updated test results for the selected amplifier: <br>
+    Insert here the updated test results for the selected item: <br>
     <b>${data.name}(${data.category})- ${data.palga}, ${data.color}.</b>
     `
 
@@ -66,7 +66,7 @@ function updateInterval(data, objectId) {
 
     amplifierParagraph = 
     `
-    Insert here the updated interval for the selected amplifier: <br>
+    Insert here the updated interval for the selected item: <br>
     <b>${data.name}(${data.category})- ${data.palga}, ${data.color}.</b>
     `
 
@@ -103,7 +103,7 @@ function deleteTracking(data, objectId) {
 
     amplifierParagraph = 
     `
-    Are you sure you want to stop tracking for the selected amplifier: <br>
+    Are you sure you want to stop tracking for the selected item: <br>
     <b>${data.name}(${data.category})- ${data.palga}, ${data.color}?</b>
     `
     console.log("I'm here", amplifierParagraph)

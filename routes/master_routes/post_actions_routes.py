@@ -434,6 +434,8 @@ async def delete_item_from_inventory(
 
     item_id = ObjectId(delete_object.item_id)
 
+    #check here if total count equall to current count
+    item_object = await mongo_db.get_inventory_item_by_object_id(item_id)
     involved_singings = await mongo_db.get_involved_item_in_signings(item_id)
     involved_pending_singings = await mongo_db.get_involved_item_in_pending_signings(
         item_id
@@ -449,6 +451,13 @@ async def delete_item_from_inventory(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This item can't be deleted. it has open pending signings",
+        )
+    
+    if item_object.get("count") != item_object.get("total_count"):
+        logger.info(f"{item_id} can't be deleted becuse not all items are available")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This item can't be deleted. not all items are available",
         )
 
     log_document = await create_delete_item_log_document(

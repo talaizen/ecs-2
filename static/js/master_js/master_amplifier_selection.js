@@ -37,7 +37,7 @@ function selectItem(data, itemId) {
 
     amplifierParagraph = 
     `
-    Set here the required test configurations for your selected amplifier: <br>
+    Set here the required test configurations for your selected item: <br>
     <b>${data.name}(${data.category})- ${data.palga}, ${data.color}.</b>
     `
 

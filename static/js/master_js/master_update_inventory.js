@@ -18,7 +18,11 @@ $(document).ready(function() {
             {
                 "data": "object_id",
                 "render": function(data, type, row) {
-                    return `<button class='editBtn btn-primary' data-item-id="${data}">Edit</button> <button class='deleteBtn btn-danger' data-item-id="${data}">Delete</button>`
+                    if (row.category === 'kit') {
+                        return ''
+                    } else {
+                        return `<button class='editBtn btn-primary' data-item-id="${data}">Edit</button> <button class='deleteBtn btn-danger' data-item-id="${data}">Delete</button>`
+                    }
                 }
             }
         ]

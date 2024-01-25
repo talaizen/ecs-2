@@ -251,6 +251,11 @@ async def get_approve_switch_requests(mongo_db: MongoDB = Depends(get_mongo_db))
         signing_info = await mongo_db.get_signing_item_by_object_id(
             document.get("signing_id")
         )
+        if not signing_info:  # means this signing was credited
+            logger.info(f"deleting credited signing request {document.get("_id")}")
+            await mongo_db.delete_switch_request_by_id(ObjectId(document.get("_id")))
+            continue
+
         item_info = await mongo_db.get_inventory_item_by_object_id(
             signing_info.get("item_id")
         )
@@ -408,6 +413,11 @@ async def amplifier_tracking_data(mongo_db: MongoDB = Depends(get_mongo_db)):
         item = await mongo_db.get_inventory_item_by_object_id(
             ObjectId(document.get("item_id"))
         )
+        if not item:
+            logger.info(f"deleting tracking for the following item id: {document.get("_id")}")
+            await mongo_db.delete_amplifier_tracking(ObjectId(document.get("_id")))
+            continue
+
         data.append(
             AmplifierStatusItem(
                 object_id=str(document.get("_id")),
@@ -442,6 +452,11 @@ async def amplifier_tracking_todo_data(mongo_db: MongoDB = Depends(get_mongo_db)
         item = await mongo_db.get_inventory_item_by_object_id(
             ObjectId(document.get("item_id"))
         )
+        if not item:
+            logger.info(f"item with the following id deleted {document.get("_id")}")
+            await mongo_db.delete_amplifier_tracking(ObjectId(document.get("_id")))
+            continue
+        
         data.append(
             AmplifierTODOItem(
                 name=item.get("name"),

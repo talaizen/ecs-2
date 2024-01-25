@@ -14,7 +14,8 @@ async def get_mongo_db():
         MongoDB: Instance of MongoDB.
     """
     logger.info("starts mongo db connection")
-    MONGO_URL = os.getenv("MONGO_URL")
+    # MONGO_URL = os.getenv("MONGO_URL")
+    MONGO_URL = "mongodb://admin:password@localhost:27017"  #TODO: remove this line and return the one above it
     DATA_BASE_NAME = os.getenv("DATA_BASE_NAME")
     mongo_db = MongoDB(MONGO_URL, DATA_BASE_NAME)
     try:

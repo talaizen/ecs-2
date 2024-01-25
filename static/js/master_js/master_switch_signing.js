@@ -68,6 +68,10 @@ $('#itemsForm').on('submit', async function(e) {
     }
 
     const selectedItems = prepareRequestData();
+    if (selectedItems === null){
+        showFailureAlert('detected invalid selected items');
+        return;
+    }
     console.log("selected items", selectedItems)
     try {
         const response = await fetch('/master/switch_signing', {
@@ -90,11 +94,22 @@ function prepareRequestData() {
     let signingDescription = document.getElementById('signingDescription').value;
     let table = $('#collectionTable').DataTable();
     let selectedItems = [];
+    let shouldStop = false;
 
     // Iterate over all data in the DataTable
     table.rows().every(function() {
+        if (shouldStop) {
+            return;
+        }
+
         let row = this.node();
         let $row = $(row);
+
+        if ($row.hasClass('invalid-checked')) {
+            console.log('invalid');
+            shouldStop = true;
+            return;
+        }
 
         // Check if the row is valid and checked
         if ($row.hasClass('valid-checked')) {
@@ -103,6 +118,10 @@ function prepareRequestData() {
             selectedItems.push({ signing_id: signingId, quantity: quantity});
         }
     });
+
+    if (shouldStop){
+        return null;
+    }
     return {selected_items: selectedItems, signing_descrition: signingDescription}
 }
 

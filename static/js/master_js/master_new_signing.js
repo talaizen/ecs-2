@@ -60,10 +60,14 @@ $('#itemsForm').on('submit', async function(e) {
     console.log("this is des:", signingDescription.trim())
     if (signingDescription.trim() === "") {
         showFailureAlert('signing description is required');
-        return
+        return;
     }
 
     const selectedItems = prepareRequestData();
+    if (selectedItems === null){
+        showFailureAlert('detected invalid selected items');
+        return;
+    }
 
     try {
         const response = await fetch('/master/add_items_to_pending_signings', {
@@ -86,19 +90,35 @@ function prepareRequestData() {
     let signingDescription = document.getElementById('signingDescription').value;
     let table = $('#collectionTable').DataTable();
     let selectedItems = [];
+    let shouldStop = false;
 
     // Iterate over all data in the DataTable
     table.rows().every(function() {
+        if (shouldStop) {
+            return;
+        }
+
         let row = this.node();
         let $row = $(row);
 
+        if ($row.hasClass('invalid-checked')) {
+            console.log('invalid');
+            shouldStop = true;
+            return;
+        }
+
         // Check if the row is valid and checked
         if ($row.hasClass('valid-checked')) {
+            console.log('valid');
             let itemId = $row.find('.item-checkbox').data('item-id');
             let quantity = $row.find('.item-quantity').val();
             selectedItems.push({ item_id: itemId, quantity: quantity });
         }
     });
+    
+    if (shouldStop){
+        return null;
+    }
     return {selected_items: selectedItems, signing_descrition: signingDescription}
 }
 

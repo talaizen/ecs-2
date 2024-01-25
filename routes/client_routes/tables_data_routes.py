@@ -1,4 +1,5 @@
 import logging
+from bson import ObjectId
 
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.templating import Jinja2Templates
@@ -133,6 +134,11 @@ async def get_switch_requests(
         signing_info = await mongo_db.get_signing_item_by_object_id(
             document.get("signing_id")
         )
+        if not signing_info:
+            logger.info(f"deleting swith request with the following id due to signing credit: {document.get("_id")}")
+            await mongo_db.delete_switch_request_by_id(ObjectId(document.get("_id")))
+            continue
+
         item_info = await mongo_db.get_inventory_item_by_object_id(
             signing_info.get("item_id")
         )
@@ -186,6 +192,11 @@ async def get_approve_switch_requests(
         signing_info = await mongo_db.get_signing_item_by_object_id(
             document.get("signing_id")
         )
+        if not signing_info:
+            logger.info(f"deleting swith request with the following id due to signing credit: {document.get("_id")}")
+            await mongo_db.delete_switch_request_by_id(ObjectId(document.get("_id")))
+            continue
+
         item_info = await mongo_db.get_inventory_item_by_object_id(
             signing_info.get("item_id")
         )

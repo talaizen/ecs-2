@@ -168,3 +168,5 @@ __pycache__
 .env
 
 tests.py
+
+xlsx_to_inventory.py

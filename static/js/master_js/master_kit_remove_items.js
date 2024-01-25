@@ -60,6 +60,10 @@ $('#itemsForm').on('submit', async function(e) {
     e.preventDefault();
 
     const selectedItems = prepareRequestData();
+    if (selectedItems === null){
+        showFailureAlert('detected invalid selected items');
+        return;
+    }
     console.log(selectedItems);
 
     try {
@@ -82,12 +86,22 @@ $('#itemsForm').on('submit', async function(e) {
 function prepareRequestData() {
     let table = $('#collectionTable').DataTable();
     let selectedItems = [];
+    let shouldStop = false;
 
     // Iterate over all data in the DataTable
     table.rows().every(function() {
+        if (shouldStop) {
+            return;
+        }
+
         let row = this.node();
         let $row = $(row);
 
+        if ($row.hasClass('invalid-checked')) {
+            console.log('invalid');
+            shouldStop = true;
+            return;
+        }
         // Check if the row is valid and checked
         if ($row.hasClass('valid-checked')) {
             let kitItemId = $row.find('.item-checkbox').data('kit-item-id');
@@ -95,6 +109,10 @@ function prepareRequestData() {
             selectedItems.push({ kit_item_id: kitItemId, quantity: quantity});
         }
     });
+
+    if (shouldStop){
+        return null;
+    }
     return {selected_items: selectedItems};
 }
 
