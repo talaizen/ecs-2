@@ -637,6 +637,15 @@ async def delete_kit(kit_data: KitContent, mongo_db: MongoDB = Depends(get_mongo
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"This kit has items assigned to it, can't be deleted.",
         )
+    
+    item_object = await mongo_db.get_inventory_item_by_kit_id(kit_id)
+
+    if item_object.get("count") != item_object.get("total_count"):
+        logger.info(f"kit: {item_object.get("name")} can't be deleted because it's not credited")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"This item can't be deleted. not available in inventory",
+        )
     await mongo_db.delete_kit(kit_id)
     await mongo_db.delete_kit_from_inventory(kit_id)
 

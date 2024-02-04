@@ -132,6 +132,10 @@
   font-size: 18px;
 }
 
+#back-to-kits {
+  margin-bottom: 25px;
+}
+
 .add-btn, .remove-btn, .content-btn {
   margin-right: 20px;
 }

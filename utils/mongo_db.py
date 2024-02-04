@@ -156,6 +156,10 @@ class MongoDB:
     async def get_inventory_item_by_object_id(self, object_id: ObjectId):
         document = await self.inventory_collection.find_one({"_id": object_id})
         return document
+    
+    async def get_inventory_item_by_kit_id(self, kit_id: ObjectId):
+        document = await self.inventory_collection.find_one({"kit_id": kit_id})
+        return document
 
     async def inventory_decrease_count_by_quantity(
         self, object_id: ObjectId, quantity: int
