@@ -137,3 +137,28 @@
 #back-to-kits {
   margin-bottom: 25px;
 }
+
+.modal-title {
+  color: #333;
+}
+
+.modal #kitContentTable {
+  background-color: #f8f9fa; /* Light grey background */
+  color: #333; /* Darker text for contrast */
+}
+
+.modal #kitContentTableHead {
+  background-color: #333; /* Blue background for headers */
+  color: white; /* White text for headers */
+}
+
+/* Table rows on hover */
+.modal #kitContentTable tbody tr:hover {
+  background-color: #d0e0fc; /* Lighter blue on row hover */
+}
+
+/* Table cells */
+.modal #kitContentTable td {
+  padding: 8px; /* Adjust padding for comfort */
+  border-top: 1px solid #dee2e6; /* Border for each cell */
+}

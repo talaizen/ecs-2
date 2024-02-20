@@ -13,7 +13,13 @@ $(function() {
                 "orderable": false
             },
             { "data": "signer" },
-            { "data": "name" },
+            { 
+                "data": "name",
+                "render": function(data, type, row) {
+                    // Encapsulate the name in a clickable element, such as a button or span, and include the category in a data attribute
+                    return `<span class="clickable-name" data-category="${row.category}" data-signing-id="${row.signing_id}" data-name="${data}">${data}</span>`;
+                }
+            },
             { "data": "category" },
             { "data": "quantity" }, 
             { "data": "color" },
@@ -33,7 +39,18 @@ $(function() {
                 },
                 "orderable": false
             }
-        ]
+        ],
+        "drawCallback": function(settings) {
+            // Add click event listener for names after table draw
+            $('.clickable-name').on('click', function() {
+                var category = $(this).data('category');
+                var signingId = $(this).data('signing-id');
+                var kitName = $(this).data('name');
+                if (category === 'kit') {
+                    openModalAndShowDetails(signingId, kitName);
+                }
+            });
+        }
     });
 });
 function updateRowAppearance(row) {
@@ -154,4 +171,38 @@ function showFailureAlert(message) {
   
 function closeAlert() {
 document.getElementById('alert-container').style.display = 'none';
+}
+
+function openModalAndShowDetails(signingId, kitName) {
+    // Code to open modal
+    console.log("open kit content modal", signingId);
+    $('#kit-content-modal').modal('show');
+
+    $('.modal-title').text("kit content: " + kitName);
+
+    if ($.fn.DataTable.isDataTable('#kitContentTable')) {
+        $('#kitContentTable').DataTable().destroy();
+    }
+
+    let apiUrl = `/collections-data/kit_content_signing_based/${signingId}`;
+    $('#kitContentTable').DataTable({
+        scrollX: true,
+        "ajax": {
+            "url": apiUrl, // Replace with your API endpoint
+            "dataSrc": "" // Adjust this if your data is nested in the response JSON
+        },
+        "columns": [
+            { "data": "name" },  // Replace with the actual data property name
+            { "data": "category" },   // Replace with the actual data property name
+            { "data": "quantity" },  // Replace with the actual data property name
+            { "data": "color" },   // Replace with the actual data property name
+            { "data": "palga" },  // Replace with the actual data property name
+            { "data": "mami_serial" },   // Replace with the actual data property name
+            { "data": "manufacture_mkt" },  // Replace with the actual data property name
+            { "data": "katzi_mkt" },   // Replace with the actual data property name
+            { "data": "serial_no" },  // Replace with the actual data property name
+            { "data": "item_description" },   // Replace with the actual data property name
+        ],
+        // ... Additional DataTables options ...
+    });
 }

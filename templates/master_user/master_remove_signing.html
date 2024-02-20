@@ -40,6 +40,43 @@
         <button type="submit" id="submitItems">Submit</button>
     </form>
 </div>
+
+<!-- Modal -->
+<div id="kit-content-modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Add Item</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <table id="kitContentTable" class="display" style="width:100%">
+                    <thead id="kitContentTableHead">
+                        <tr>
+                            <th>name</th>
+                            <th>category</th>
+                            <th>quantity</th>
+                            <th>color</th>
+                            <th>palga</th>
+                            <th>mami_serial</th>
+                            <th>manufacture_mkt</th>
+                            <th>katzi_mkt</th>
+                            <th>serial_no</th>
+                            <th>description</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block added_scripts %}

@@ -376,6 +376,70 @@ async def get_kits_data(kit_id: str, mongo_db: MongoDB = Depends(get_mongo_db)):
     return data
 
 
+@router.get("/collections-data/kit_content_item_based/{item_id}")
+async def get_kits_data(item_id: str, mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    item = await mongo_db.get_inventory_item_by_object_id(ObjectId(item_id))
+    kit_id = item.get("kit_id")
+    if not kit_id:
+        return data
+    
+    async for document in await mongo_db.get_kit_items_by_id(kit_id):
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        data.append(
+            KitContentCollectionItem(
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description"),
+            )
+        )
+
+    return data
+
+@router.get("/collections-data/kit_content_signing_based/{signing_id}")
+async def get_kits_data(signing_id: str, mongo_db: MongoDB = Depends(get_mongo_db)):
+    data = []
+    signing = await mongo_db.get_signing_item_by_object_id(ObjectId(signing_id))
+    item_id = signing.get("item_id")
+    if not item_id:
+        return data
+    
+    item = await mongo_db.get_inventory_item_by_object_id(item_id)
+    kit_id = item.get("kit_id")
+    if not kit_id:
+        return data
+    
+    async for document in await mongo_db.get_kit_items_by_id(kit_id):
+        item_info = await mongo_db.get_inventory_item_by_object_id(
+            document.get("item_id")
+        )
+        data.append(
+            KitContentCollectionItem(
+                name=item_info.get("name"),
+                category=item_info.get("category"),
+                quantity=document.get("quantity"),
+                color=item_info.get("color"),
+                palga=item_info.get("palga"),
+                mami_serial=item_info.get("mami_serial"),
+                manufacture_mkt=item_info.get("manufacture_mkt"),
+                katzi_mkt=item_info.get("katzi_mkt"),
+                serial_no=item_info.get("serial_no"),
+                item_description=item_info.get("description"),
+            )
+        )
+
+    return data
+
+
 @router.get("/collections-data/kit_remove_items/{kit_id}")
 async def get_kit_remove_item_data(
     kit_id: str, mongo_db: MongoDB = Depends(get_mongo_db)
