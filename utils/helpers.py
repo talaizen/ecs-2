@@ -134,7 +134,7 @@ async def create_new_signing_log_document(
     item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
     master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
     client_user = await mongo_db.get_client_by_personal_id(client_user_pid)
-    description = f'{generate_user_presentation(client_user)} signed on {quantity} {item_info.get("name")}({item_info.get("color")}).\n Issued by: {generate_user_presentation(master_user)}.'
+    description = f'{generate_user_presentation(client_user)} signed on {quantity} {item_info.get("name")}(color: {item_info.get("color")}, mami serial: {item_info.get("mami_serial")}).\n Issued by: {generate_user_presentation(master_user)}.'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
@@ -149,7 +149,7 @@ async def create_credit_log_document(
     item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
     master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
     client_user = await mongo_db.get_client_by_personal_id(client_user_pid)
-    description = f'{generate_user_presentation(client_user)} credited {quantity} {item_info.get("name")}({item_info.get("color")}).\n Credited by: {generate_user_presentation(master_user)}.'
+    description = f'{generate_user_presentation(client_user)} credited {quantity} {item_info.get("name")}(color: {item_info.get("color")}, mami serial: {item_info.get("mami_serial")}).\n Credited by: {generate_user_presentation(master_user)}.'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
@@ -166,7 +166,7 @@ async def create_switch_log_document(
     master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
     old_signer_user = await mongo_db.get_client_by_personal_id(old_signer_pid)
     new_signer_user = await mongo_db.get_client_by_personal_id(new_signer_pid)
-    description = f'{generate_user_presentation(old_signer_user)} passed to {generate_user_presentation(new_signer_user)} {quantity} {item_info.get("name")}({item_info.get("color")}).\n Switched by: {generate_user_presentation(master_user)}.'
+    description = f'{generate_user_presentation(old_signer_user)} passed to {generate_user_presentation(new_signer_user)} {quantity} {item_info.get("name")}(color: {item_info.get("color")}, mami serial: {item_info.get("mami_serial")}).\n Switched by: {generate_user_presentation(master_user)}.'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
 
@@ -194,6 +194,6 @@ async def create_delete_item_log_document(
     action = "Delete Inventory Item"
     item_info = await mongo_db.get_inventory_item_by_object_id(item_id)
     master_user = await mongo_db.get_master_by_personal_id(master_user_pid)
-    description = f'{generate_user_presentation(master_user)} deleted item from inventory: {item_info.get("name")}({item_info.get("color")}).'
+    description = f'{generate_user_presentation(master_user)} deleted item from inventory: {item_info.get("name")}(color: {item_info.get("color")}, mami serial: {item_info.get("mami_serial")}).'
     date = datetime.utcnow()
     return {"action": action, "description": description, "date": date}
